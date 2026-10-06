@@ -79,51 +79,52 @@ export default function Landing() {
 
   return (
     <div className="space-y-12 sm:space-y-16 pb-16">
-      {/* ─── 1. Cinematic Hero Section ─── */}
-      <section className="relative min-h-[85vh] sm:min-h-[90vh] w-full overflow-hidden bg-white flex flex-col justify-between">
-        {/* Background media  -  turbines fully visible tip to base per spec §14 & §193 */}
+      {/* ── Cinematic Hero — exact sprout-hero layout with green oval buttons on windmill fans ── */}
+      <section className="relative min-h-screen w-full overflow-hidden bg-white">
+        {/* Video background — covers screen */}
         <HeroVideo />
 
-        {/* Hero Content  -  z-10 */}
+        {/* Hero content — z-10 */}
         <div
-          className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 text-center max-w-4xl mx-auto"
-          style={{ paddingTop: "calc(4.5rem + 1rem)" }}
+          className="relative z-10 flex flex-col items-center justify-center px-6 pb-20 text-center"
+          style={{ paddingTop: "calc(5.5rem + 1rem)" }}
         >
-          {/* Main wordmark */}
+          {/* Main headline */}
           <h1
-            className="text-5xl sm:text-6xl md:text-7xl font-normal text-[#0F2A1D]"
-            style={{ fontFamily: "var(--font-display)", lineHeight: 1.05, letterSpacing: "-1.5px" }}
+            className="animate-fade-rise max-w-6xl text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-normal text-[#0F2A1D]"
+            style={{ fontFamily: "var(--font-display)", lineHeight: 0.95, letterSpacing: "-2px" }}
           >
             CarbonChain
           </h1>
 
-          {/* Pitch line per spec §14 */}
-          <p className="mt-3.5 max-w-2xl text-sm sm:text-base md:text-lg leading-relaxed text-[#3b4c42] font-normal">
-            CarbonChain mirrors the account structure and credit lifecycle of India's Carbon Registry (IPP, VVB, TO, MCU), made transparent and automated.
+          {/* Description */}
+          <p className="animate-fade-rise-delay mt-3.5 max-w-2xl text-sm sm:text-base md:text-lg leading-relaxed text-[#5F6F66]">
+            A transparent platform for carbon credit tracking and trading.
           </p>
-
-          {/* Outlined Action Buttons per spec §1 */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/marketplace"
-              className="px-6 py-2.5 rounded border border-forest text-forest hover:bg-forest/5 text-sm font-semibold transition-colors cursor-pointer bg-white/80 backdrop-blur-xs"
-            >
-              Explore Marketplace
-            </Link>
-            <Link
-              to="/signup"
-              className="btn-neutral-outline px-6 py-2.5 text-sm font-semibold bg-white/80 backdrop-blur-xs"
-            >
-              Get Started
-            </Link>
-          </div>
         </div>
 
-        {/* Bottom Scroll Cue */}
-        <div className="relative z-10 pb-6 text-center text-xs text-charcoal-muted font-medium flex items-center justify-center gap-1">
-          <span>Scroll to explore live ledger records and verified projects</span>
-          <ChevronDown className="w-3.5 h-3.5" />
+        {/* Scroll cue */}
+        <div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-sm font-medium text-[#0F2A1D]">
+          Scroll to explore live ledger data &amp; verified projects ↓
         </div>
+
+        {/* Explore Marketplace — floats above 2nd windmill from left */}
+        <Link
+          to="/marketplace"
+          className="animate-fade-rise-delay-2 absolute z-20 rounded-full bg-[#1F5C3F] px-6 py-3 sm:px-8 sm:py-4 text-xs sm:text-sm font-medium text-white shadow-lg backdrop-blur-sm transition-transform hover:scale-[1.04] hover:shadow-xl"
+          style={{ bottom: "53%", left: "26%", transform: "translateX(-50%)" }}
+        >
+          Explore Marketplace
+        </Link>
+
+        {/* Get Started — floats above windmill fan center */}
+        <Link
+          to="/signup"
+          className="animate-fade-rise-delay-2 absolute z-20 rounded-full bg-[#1F5C3F] px-6 py-3 sm:px-8 sm:py-4 text-xs sm:text-sm font-medium text-white shadow-lg backdrop-blur-sm transition-transform hover:scale-[1.04] hover:shadow-xl"
+          style={{ bottom: "53%", left: "63%", transform: "translateX(-50%)" }}
+        >
+          Get Started
+        </Link>
       </section>
 
       {/* ─── 2. Problem Stats ─── */}

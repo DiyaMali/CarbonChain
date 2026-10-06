@@ -56,13 +56,13 @@ export default function HeroVideo() {
   }, []);
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-0 w-full overflow-visible pointer-events-none flex items-end justify-center">
+    <div className="absolute inset-0 z-0 w-full h-full min-h-[520px] hero-video-mask">
       <video
         ref={videoRef}
-        className="w-full h-auto max-h-[85vh] object-contain object-bottom"
+        className="h-full w-full object-cover object-[center_18%]"
         style={{
           opacity: 0,
-          filter: "saturate(1.15) contrast(1.1) brightness(1.02)",
+          filter: "saturate(1.65) contrast(1.25) brightness(1.06)",
         }}
         src="/hero.mp4"
         poster="/poster.jpg"
@@ -71,8 +71,8 @@ export default function HeroVideo() {
         autoPlay
         preload="auto"
       />
-      {/* Light edge blending only */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/90 via-transparent to-transparent" />
+      {/* gradient overlay - only top and bottom edges, less aggressive */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/95 via-transparent to-white/70" />
     </div>
   );
 }
