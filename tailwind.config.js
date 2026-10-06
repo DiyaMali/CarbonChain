@@ -88,8 +88,10 @@ export default {
         gutter: '1.5rem',
       },
       fontFamily: {
-        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        heading: ["'Space Grotesk'", 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ["'Plus Jakarta Sans'", 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        serif: ["'Cormorant Garamond'", 'Georgia', 'serif'],
+        mono: ["'IBM Plex Mono'", 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       borderRadius: {
         DEFAULT: '4px',
