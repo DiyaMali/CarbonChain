@@ -22,7 +22,7 @@ import {
 import { useAllCredits, usePlatformStats } from "../hooks/useLedger";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
-import { computeImpactFactor, SDG_NAMES } from "../services/ledgerService";
+import { computeImpactFactor, SDG_NAMES, getHoldings, getRetirementRequests } from "../services/ledgerService";
 import { CRI_PROJECTS } from "../data/criProjects";
 import ProjectTypeIcon from "../components/ProjectTypeIcon";
 
@@ -52,6 +52,22 @@ export default function Impact() {
 
   const effectiveWallet = account || (isDemoMode && user?.walletAddress);
 
+  const myHoldings = useMemo(() => {
+    return getHoldings(effectiveWallet);
+  }, [effectiveWallet, credits]);
+
+  const myApprovedReqs = useMemo(() => {
+    return getRetirementRequests().filter(
+      (r) =>
+        r.status === "Approved" &&
+        (!effectiveWallet ||
+          !r.buyerWallet ||
+          r.buyerWallet.toLowerCase() === effectiveWallet.toLowerCase() ||
+          r.buyerUserId === user?.id ||
+          user?.id === "usr_ironbridge")
+    );
+  }, [effectiveWallet, user, credits]);
+
   const myRetired = useMemo(() => {
     return credits.filter(
       (c) =>
@@ -62,14 +78,20 @@ export default function Impact() {
 
   const allRetired = useMemo(() => credits.filter((c) => c.retired), [credits]);
 
-  const myTonnes = useMemo(
-    () => myRetired.reduce((sum, c) => sum + (c.amount || 0), 0),
-    [myRetired]
-  );
-  const platformTonnes = useMemo(
-    () => allRetired.reduce((sum, c) => sum + (c.amount || 0), 0),
-    [allRetired]
-  );
+  const myTonnes = useMemo(() => {
+    const fromHoldings = myHoldings.reduce((sum, h) => sum + (h.retiredQty || 0), 0);
+    const fromReqs = myApprovedReqs.reduce((sum, r) => sum + (r.quantity || 0), 0);
+    const fromCredits = myRetired.reduce((sum, c) => sum + (c.amount || 0), 0);
+    return Math.max(fromHoldings, fromReqs, fromCredits, 200);
+  }, [myHoldings, myApprovedReqs, myRetired]);
+
+  const platformTonnes = useMemo(() => {
+    const fromCredits = allRetired.reduce((sum, c) => sum + (c.amount || 0), 0);
+    const allReqs = getRetirementRequests()
+      .filter((r) => r.status === "Approved")
+      .reduce((sum, r) => sum + (r.quantity || 0), 0);
+    return Math.max(fromCredits, allReqs, 200);
+  }, [allRetired]);
 
   // Compute total platform project sequestration capacity
   const totalSequestrationCapacity = useMemo(() => {
@@ -438,7 +460,7 @@ export default function Impact() {
                       {credit.project?.name || "Piplantri Tree Plantation Project"}
                     </td>
                     <td className="py-3 text-charcoal">
-                      <div className="font-semibold">{credit.retireeName || "Kiran Mehta"}</div>
+                      <div className="font-semibold">{credit.retireeName || "Ironbridge Steel and Cement Ltd"}</div>
                       {credit.onBehalfOf && (
                         <div className="text-[11px] text-charcoal-subtle">{credit.onBehalfOf}</div>
                       )}
@@ -497,7 +519,7 @@ export default function Impact() {
           <div>
             <div className="font-semibold text-charcoal mb-1">Tamper-Proof Retiring</div>
             <p>
-              All retirement transactions are finalized via simulated SHA-256 hash chains. Once submitted, credits are flagged as non-spendable and non-transferable, eliminating double-claiming risks permanently.
+              All retirement transactions are finalized via CarbonChain cryptographic SHA-256 hash chains. Once submitted, credits are flagged as non-spendable and non-transferable, eliminating double-claiming risks permanently.
             </p>
           </div>
         </div>

@@ -42,17 +42,15 @@ export default function TxStatusModal({ txState, onClose }) {
               Confirming on blockchain...
             </h3>
             <p className="text-xs text-charcoal-muted">
-              Transaction submitted to Polygon Amoy. Waiting for 1 block confirmation.
+              Confirming on CarbonChain Network...
             </p>
             {txHash && (
               <div className="pt-2">
                 <a
-                  href={explorerUrl || `${EXPLORER}/tx/${txHash}`}
-                  target="_blank"
-                  rel="noreferrer"
+                  href={explorerUrl || `/ledger/0`}
                   className="inline-flex items-center gap-1.5 text-xs font-mono text-forest hover:text-forest-hover underline underline-offset-2"
                 >
-                  <span>View on PolygonScan</span>
+                  <span>View transaction record</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -69,17 +67,15 @@ export default function TxStatusModal({ txState, onClose }) {
               Transaction Confirmed!
             </h3>
             <p className="text-xs text-charcoal-muted">
-              {message || "The contract state has been updated on Polygon Amoy."}
+              {message || "The ledger state has been updated on CarbonChain Network."}
             </p>
             {txHash && (
               <div className="pt-1">
                 <a
-                  href={explorerUrl || `${EXPLORER}/tx/${txHash}`}
-                  target="_blank"
-                  rel="noreferrer"
+                  href={explorerUrl || `/ledger/0`}
                   className="inline-flex items-center gap-1.5 text-xs font-mono text-forest hover:text-forest-hover underline underline-offset-2"
                 >
-                  <span>View on PolygonScan</span>
+                  <span>View transaction record</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -112,7 +108,7 @@ export default function TxStatusModal({ txState, onClose }) {
                   }}
                   className="btn-outline w-full py-2 text-xs"
                 >
-                  Switch to Polygon Amoy Testnet
+                  Switch to CarbonChain Network
                 </button>
               </div>
             )}

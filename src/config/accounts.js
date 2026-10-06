@@ -1,5 +1,5 @@
 /**
- * CarbonChain — Seeded account definitions.
+ * CarbonChain  -  Seeded account definitions.
  * This is the single source of truth for the three built-in accounts.
  * Phase 1: accounts, capabilities, wallet addresses (SHA-256 deterministic).
  *
@@ -26,8 +26,8 @@ export const SEEDED_ACCOUNTS = [
     email: "meridian@carbonchain.in",
     password: "Password123",
     organisation: "Meridian Renewables Ltd",
-    // Sell only
-    capabilities: ["create_sell"],
+    // Sell only per spec §3.1
+    capabilities: ["sell"],
     role: "Project Owner",
     walletAddress: ACCOUNT_WALLETS.seller,
     isVerifier: false,
@@ -39,8 +39,8 @@ export const SEEDED_ACCOUNTS = [
     email: "ironbridge@carbonchain.in",
     password: "Password123",
     organisation: "Ironbridge Steel and Cement Ltd",
-    // Buy only
-    capabilities: ["buy_retire"],
+    // Buy only per Patch P1 spec §2
+    capabilities: ["buy"],
     role: "Buyer",
     walletAddress: ACCOUNT_WALLETS.buyer,
     isVerifier: false,
@@ -52,7 +52,7 @@ export const SEEDED_ACCOUNTS = [
     email: "diya.mali@carbonchain.in",
     password: "Password123",
     organisation: "Diya Mali, Verification Authority",
-    // Verifier has no sell/buy capabilities — separate role
+    // Verifier has no sell/buy capabilities: separate verifier-only role
     capabilities: [],
     role: "Verifier",
     walletAddress: ACCOUNT_WALLETS.verifier,

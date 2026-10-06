@@ -27,6 +27,7 @@ import {
   TrendingUp,
   RotateCcw,
   Download,
+  Lock,
 } from "lucide-react";
 import {
   getCriProject,
@@ -40,6 +41,7 @@ import {
   buyCredit,
   sendBackForReview,
   resolveProjectImage,
+  getPurchasesHistory,
 } from "../services/ledgerService";
 import { downloadProjectDetailsText, downloadProjectDetailsJson } from "../utils/exportProject";
 import PaymentSheet from "../components/PaymentSheet";
@@ -103,12 +105,11 @@ export default function ProjectDetail() {
   const [isSendingBack, setIsSendingBack] = useState(false);
   const [activePaymentSheetToken, setActivePaymentSheetToken] = useState(null);
 
-  const isMiraVerifier =
+  const isVerifierRole =
     Boolean(user?.isVerifier) ||
     Boolean(useWallet()?.isVerifier) ||
     account?.toLowerCase() === DEMO_WALLETS.verifier?.toLowerCase() ||
-    user?.email?.toLowerCase() === "mira@envirocheck.in" ||
-    user?.email?.toLowerCase() === "meera@envirocheck.in";
+    user?.id === "usr_verifier";
 
   useEffect(() => {
     let proj = getCriProject(slug);
@@ -137,9 +138,9 @@ export default function ProjectDetail() {
           methodology: matched.methodology || "ACM0002",
           classification: matched.classification || "pa",
           listedDate: "Verified",
-          registeredDate: "Polygon Amoy",
+          registeredDate: "CarbonChain Network",
           creditingPeriod: "2024 - 2026",
-          developer: matched.developer || "Tata Industries Ltd.",
+          developer: matched.developer || matched.ownerOrganization || "Meridian Renewables Ltd",
           delegateEntity: matched.delegateEntity || "CarbonChain Enterprise",
           delegateUrl: matched.delegateUrl || "https://carbonchain.network",
           validationBody: matched.validationBody || { name: "VCS Lead Signatory", id: "CRI-VVB-000007" },
@@ -179,16 +180,16 @@ export default function ProjectDetail() {
 
   const handleSendBackFromDetail = async () => {
     const reason = window.prompt(
-      "Send Project Back for Review\n\nEnter reason or telemetry discrepancies for Mira's re-audit:",
-      "Identified baseline telemetry discrepancy during secondary MRV inspection. Returning to Verifier Queue for re-audit."
+      "Send Project Back for Review\n\nEnter reason or telemetry discrepancies for verifier re-audit:",
+      "Identified baseline telemetry discrepancy during secondary verification inspection. Returning to Review Queue for re-audit."
     );
     if (!reason) return;
     setIsSendingBack(true);
     try {
       const targetId = demoProjectState?.id || project.demoLedgerId || project.criId;
       await sendBackForReview(targetId, account || DEMO_WALLETS.verifier, { reason });
-      alert(`Project "${project.name}" has been removed from Marketplace and returned to Mira's Verifier Queue as 'Sent Back for Review / Pending Verification'.`);
-      navigate("/verifier");
+      alert(`Project "${project.name}" has been removed from Marketplace and returned to Review Queue as 'Sent Back for Review / Pending Verification'.`);
+      navigate("/verifier/queue");
     } catch (err) {
       alert("Failed to send back for review: " + (err.message || err));
     } finally {
@@ -214,6 +215,26 @@ export default function ProjectDetail() {
 
   const impactFactor = getIndicativeImpactFactor(project);
 
+  const isConcluded =
+    demoProjectState?.status?.toUpperCase() === "CONCLUDED" ||
+    project?.status?.toUpperCase() === "CONCLUDED";
+
+  const issuedQty =
+    demoProjectState?.verifiedAmount ||
+    demoProjectState?.estimatedCO2 ||
+    project?.estCreditsPerYear ||
+    0;
+
+  const salesHistory = getPurchasesHistory().filter(
+    (p) =>
+      p.projectId === project?.demoLedgerId ||
+      p.projectId === project?.criId ||
+      p.projectId === demoProjectState?.id
+  );
+  const soldQty = salesHistory.reduce((sum, p) => sum + (p.quantity || p.amount || 0), 0);
+  const retiredQty = salesHistory.reduce((sum, p) => (p.retired ? sum + (p.quantity || 0) : sum), 0);
+  const remainingQty = isConcluded ? 0 : Math.max(0, issuedQty - soldQty);
+
   const handleBuy = async (credit) => {
     if (!account) {
       alert("Please connect or select a wallet first.");
@@ -221,12 +242,12 @@ export default function ProjectDetail() {
       return;
     }
     if (credit.owner === account) {
-      alert("You already own this demo credit.");
+      alert("You already own this credit.");
       return;
     }
     if (
       !window.confirm(
-        `Buy demo token ${credit.id} (${credit.amount.toLocaleString(
+        `Buy token ${credit.id} (${credit.amount.toLocaleString(
           "en-IN"
         )} tCO2e) for ${formatINR(credit.price)} (illustrative price)?`
       )
@@ -256,8 +277,8 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-16">
-      {/* ─── MRV AUDITOR ACTION BAR (Mira only) ────────────────────────────── */}
-      {isMiraVerifier && (
+      {/* ─── VERIFICATION AUTHORITY ACTION BAR ────────────────────────────── */}
+      {isVerifierRole && (
         <div className="bg-[#003b1b] text-white px-4 sm:px-8 py-3 border-b border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md z-30 relative">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
@@ -265,9 +286,9 @@ export default function ProjectDetail() {
             </div>
             <div>
               <div className="text-xs font-bold uppercase tracking-wider font-mono text-emerald-300 flex items-center gap-2">
-                <span>Lead MRV Auditor Inspection Mode</span>
+                <span>Verification Authority Inspection Mode</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[11px] text-emerald-200/80">Mira Iyer</span>
+                <span className="text-[11px] text-emerald-200/80">Diya Mali, Verification Authority</span>
               </div>
               <div className="text-xs text-white/90">
                 Audit Status:{" "}
@@ -370,58 +391,64 @@ export default function ProjectDetail() {
                 <span>{project.location}</span>
               </div>
               <span className="text-white/40">&bull;</span>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/20 text-white border border-white/30 backdrop-blur-xs lowercase">
-                {project.status === "Listed" ? "listed" : "planned_listed"}
-              </span>
+              {isConcluded ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-gray-600 text-gray-100 border border-gray-400 backdrop-blur-xs font-mono uppercase">
+                  CONCLUDED
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/20 text-white border border-white/30 backdrop-blur-xs lowercase">
+                  {project.status === "Listed" ? "listed" : "planned_listed"}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ─── 2. FLOATING WHITE STATS CARD ────────────────────────────────── */}
+      {/* ─── 2. FLOATING WHITE STATS CARD: Issued, Sold, Retired, Remaining ────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="relative -mt-12 sm:-mt-14 z-10 bg-white rounded-xl shadow-md border border-gray-100 p-6 sm:p-8 mb-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
-            {/* Stat 1: Estimated MCUs/yr */}
+            {/* Stat 1: Issued */}
             <div className="pt-2 lg:pt-0 lg:px-4 first:pl-0">
               <div className="text-3xl sm:text-4xl font-bold text-[#00875A] tracking-tight">
-                {formatNumber(project.estCreditsPerYear)}
+                {formatNumber(issuedQty)}
               </div>
               <div className="text-xs text-gray-500 font-medium mt-1">
-                Estimated MCUs/yr
+                Issued (tCO2e)
               </div>
             </div>
 
-            {/* Stat 2: MCUs Issued */}
+            {/* Stat 2: Sold */}
             <div className="pt-2 lg:pt-0 lg:px-6">
               <div className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                0
+                {formatNumber(soldQty)}
               </div>
               <div className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-gray-400" />
-                MCUs Issued
+                Sold (tCO2e)
               </div>
             </div>
 
-            {/* Stat 3: MCUs Retired */}
+            {/* Stat 3: Retired */}
             <div className="pt-4 lg:pt-0 lg:px-6">
               <div className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                0
+                {formatNumber(retiredQty)}
               </div>
               <div className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
                 <RotateCcw className="w-3.5 h-3.5 text-gray-400" />
-                MCUs Retired
+                Retired (tCO2e)
               </div>
             </div>
 
-            {/* Stat 4: Project Type */}
+            {/* Stat 4: Remaining */}
             <div className="pt-4 lg:pt-0 lg:px-6">
-              <div className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
-                {project.type}
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+                {formatNumber(remainingQty)}
               </div>
               <div className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
                 <Tag className="w-3.5 h-3.5 text-gray-400" />
-                Project Type
+                Remaining (tCO2e)
               </div>
             </div>
           </div>
@@ -650,7 +677,7 @@ export default function ProjectDetail() {
                     </span>
                     {showTooltip && (
                       <div className="absolute right-0 bottom-full mb-1.5 w-64 p-2.5 rounded bg-charcoal text-white text-[11px] leading-tight shadow-xl z-20">
-                        Method: CRI SDG scoring, Scale x Intensity per SDG, top 4 summed and divided by 100. Scores here are demo values.
+                        Method: CRI SDG scoring, Scale x Intensity per SDG, top 4 summed and divided by 100. Scores here are illustrative values.
                       </div>
                     )}
                   </div>
@@ -1037,29 +1064,36 @@ export default function ProjectDetail() {
           </a>
         </div>
 
-        {/* ─── 5. CARBONCHAIN DEMO LEDGER PANEL ────────────────────────────── */}
+        {/* ─── 5. CARBONCHAIN TRADING PANEL ────────────────────────────── */}
         <div className="mt-8 bg-white rounded-xl border-t-4 border-t-charcoal border-x border-b border-gray-200 p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-gray-100 gap-2">
             <div>
               <div className="flex items-center gap-2">
                 <Database className="w-4 h-4 text-[#00875A]" />
                 <h2 className="text-base font-bold text-gray-900">
-                  CarbonChain demo ledger
+                  CarbonChain trading
                 </h2>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
-                Demo tokens are simulated, not MCUs issued by CRI. Prices are illustrative.
+                Credits listed here are issued through CarbonChain. They are not MCUs issued by CRI. Prices are indicative.
               </p>
             </div>
             <div className="text-xs text-gray-400">
-              Demo Project ID: <code className="font-mono text-gray-800 font-semibold">{project.demoLedgerId}</code>
+              Ledger Project ID: <code className="font-mono text-gray-800 font-semibold">{project.demoLedgerId || project.criId}</code>
             </div>
           </div>
+
+          {isConcluded && (
+            <div className="mb-4 p-4 rounded-lg bg-gray-100 border border-gray-300 text-gray-800 text-xs flex items-center gap-2 font-medium">
+              <Lock className="w-4 h-4 text-gray-500 shrink-0" />
+              <span>This project is concluded and its credits are permanently retired.</span>
+            </div>
+          )}
 
           {buySuccess && (
             <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              Purchased demo MCU {buySuccess}! Transaction recorded in demo ledger block. Go to My Credits to manage it.
+              Purchased credit token {buySuccess}! Transaction recorded on CarbonChain ledger. Go to My Credits to manage it.
             </div>
           )}
           {buyError && (
@@ -1071,27 +1105,27 @@ export default function ProjectDetail() {
           {demoProjectState?.status === "Pending" ? (
             <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
               <div className="font-semibold mb-1">
-                Status: Pending verification in CarbonChain demo
+                Status: Pending verification
               </div>
               <p className="text-amber-700 leading-relaxed mb-3">
-                This project is currently in the simulated verifier review queue in the demo ledger. No demo tokens have been minted yet.
+                This project is currently in the verifier review queue on the ledger. Credits have not yet been listed.
               </p>
               <Link
-                to="/verifier"
+                to="/verifier/queue"
                 className="btn-neutral-outline text-xs py-1.5 px-3 inline-flex items-center gap-1.5"
               >
-                Open Verifier Dashboard
+                Open Verifier Review Queue
                 <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           ) : demoTokens.length === 0 ? (
             <div className="py-6 text-center text-xs text-gray-500">
-              No active demo tokens minted for this project in the demo ledger yet.
+              No active credit tokens listed for this project on the ledger yet.
             </div>
           ) : (
             <div className="space-y-3">
               <div className="text-xs font-semibold text-gray-800">
-                Active Demo Tokens ({demoTokens.length})
+                Active Listings ({demoTokens.length})
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -1099,9 +1133,9 @@ export default function ProjectDetail() {
                     <tr className="border-b border-gray-200 text-gray-400 font-semibold text-[10px] uppercase tracking-wider">
                       <th className="pb-2">Token ID</th>
                       <th className="pb-2">tCO2e Amount</th>
-                      <th className="pb-2">Illustrative Price</th>
+                      <th className="pb-2">Price</th>
                       <th className="pb-2">Current Owner</th>
-                      <th className="pb-2">Demo Status</th>
+                      <th className="pb-2">Status</th>
                       <th className="pb-2 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -1119,7 +1153,7 @@ export default function ProjectDetail() {
                           <td className="py-3 text-gray-800">
                             {formatINR(tok.price)}{" "}
                             <span className="text-[10px] text-gray-400">
-                              (Rs {tok.pricePerTonne}/t)
+                              (₹{tok.pricePerTonne || 450}/tCO2e)
                             </span>
                           </td>
                           <td className="py-3 font-mono text-[11px] text-gray-500">
@@ -1132,7 +1166,7 @@ export default function ProjectDetail() {
                             )}
                           </td>
                           <td className="py-3">
-                            {tok.retired ? (
+                            {isConcluded || tok.retired ? (
                               <span className="px-2 py-0.5 rounded text-[10px] bg-gray-100 text-gray-500">
                                 Retired
                               </span>
@@ -1154,13 +1188,13 @@ export default function ProjectDetail() {
                               >
                                 View record
                               </Link>
-                              {!tok.retired && tok.listed && !isOwner && (
+                              {!isConcluded && !tok.retired && tok.listed && !isOwner && (
                                 <button
                                   type="button"
                                   onClick={() => setActivePaymentSheetToken(tok)}
                                   className="btn-outline text-[11px] py-1 px-3 cursor-pointer"
                                 >
-                                  Buy MCU
+                                  Buy Credits
                                 </button>
                               )}
                             </div>

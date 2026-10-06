@@ -35,7 +35,8 @@ function ensureSeededAccounts() {
         u.email !== demo.email ||
         u.name !== demo.name ||
         u.organisation !== demo.organisation ||
-        u.isVerifier !== demo.isVerifier
+        u.isVerifier !== demo.isVerifier ||
+        JSON.stringify(u.capabilities) !== JSON.stringify(demo.capabilities)
       ) {
         users[existingIdx] = { ...u, ...demo };
         changed = true;
@@ -101,7 +102,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Quick sign-in — bypass password check for the three seeded accounts.
+   * Quick sign-in  -  bypass password check for the three seeded accounts.
    * @param {"seller"|"buyer"|"verifier"} role
    */
   const quickSignIn = (role) => {
@@ -129,7 +130,7 @@ export function AuthProvider({ children }) {
     rememberMe = true,
   }) => {
     if (!capabilities || capabilities.length === 0) {
-      capabilities = ["create_sell", "buy_retire"];
+      capabilities = ["sell", "buy"];
     }
     const cleanEmail = email.trim().toLowerCase();
     const users = getUsers();
@@ -140,9 +141,9 @@ export function AuthProvider({ children }) {
       );
     }
 
-    const hasCreate = capabilities.includes("create_sell");
-    const hasBuy = capabilities.includes("buy_retire");
-    const role = hasCreate && hasBuy ? "Both" : hasCreate ? "Project Owner" : "Buyer";
+    const hasCreate = capabilities.includes("sell") || capabilities.includes("create_sell");
+    const hasBuy = capabilities.includes("buy") || capabilities.includes("buy_retire");
+    const role = hasCreate && hasBuy ? "Project Owner & Buyer" : hasCreate ? "Project Owner" : "Buyer";
 
     // Deterministic wallet from email (simple hex hash for display)
     const walletHex = Array.from(cleanEmail)

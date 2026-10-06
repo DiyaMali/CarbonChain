@@ -7,7 +7,7 @@
 .animate-fade-rise-delay   { animation: fade-rise 0.8s ease-out 0.2s both; }
 .animate-fade-rise-delay-2 { animation: fade-rise 0.8s ease-out 0.4s both; }
 
-/* Top-only fade — no side clipping so all windmills stay fully visible */
+/* Top-only fade  -  no side clipping so all windmills stay fully visible */
 .hero-video-mask {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 100%);

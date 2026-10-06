@@ -20,6 +20,7 @@ import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
 import { useWalletLedgerStats, usePlatformStats } from "../hooks/useLedger";
 import { USE_DEMO_LEDGER } from "../config/contract";
+import { canSell, canBuy } from "../services/roleService";
 
 const ACTION_LABELS = {
   PROJECT_SUBMITTED: "Project submitted",
@@ -44,10 +45,20 @@ export default function Dashboard() {
   const { stats, loading, refetch } = useWalletLedgerStats(account);
   const { stats: platformStats } = usePlatformStats();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [redirectNotice, setRedirectNotice] = useState(null);
+
+  const isSeller = canSell(user);
+  const isBuyer = canBuy(user);
 
   React.useEffect(() => {
     document.title = "Dashboard | CarbonChain";
-  }, []);
+
+    // Handle redirect message from route guards per Patch P1 spec §2
+    const msg = location.state?.message || new URLSearchParams(location.search).get("message");
+    if (msg) {
+      setRedirectNotice(msg);
+    }
+  }, [location]);
 
   // Show wallet connect modal over dashboard if not connected in this session and not skipped
   useEffect(() => {
@@ -72,6 +83,24 @@ export default function Dashboard() {
 
   return (
     <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      {/* Capability Guard Redirect Banner per Patch P1 spec §2 */}
+      {redirectNotice && (
+        <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 text-xs shadow-xs animate-fade-in">
+          <div className="flex items-center gap-2.5">
+            <Shield className="w-4 h-4 text-amber-700 shrink-0" />
+            <span className="font-medium leading-relaxed">{redirectNotice}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setRedirectNotice(null)}
+            className="p-1 text-amber-700 hover:text-amber-950 rounded transition-colors cursor-pointer shrink-0 ml-3"
+            title="Dismiss notice"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Slim dismissible banner when wallet connection is skipped */}
       {!account && hasSkippedWallet && !bannerDismissed && (
         <div className="flex items-center justify-between px-4 py-2.5 rounded-lg border border-[#14532D]/30 bg-[#F4F7F3] text-xs text-[#0F2A1D] shadow-2xs">
@@ -103,7 +132,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-xs font-mono uppercase tracking-wider text-forest block mb-1">
-            {isDemoMode ? "Demo Mode" : "Live Mode"} Dashboard
+            Enterprise Dashboard
           </span>
           <h1 className="text-2xl font-semibold text-charcoal">
             Welcome back, {user.name.split(" ")[0]}
@@ -124,55 +153,68 @@ export default function Dashboard() {
         </div>
       </div>
 
-
-      {/* Stats grid */}
+      {/* Stats grid per Patch P1 spec §2: display only sections account has */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          icon={<FileText className="w-4 h-4 text-charcoal-subtle" />}
-          label="Projects Submitted"
-          value={loading ? "--" : stats?.submittedProjectsCount ?? 0}
-          link="/my-projects"
-        />
-        <StatCard
-          icon={<Layers className="w-4 h-4 text-charcoal-subtle" />}
-          label="Credits Owned"
-          value={loading ? "--" : stats?.ownedCreditsCount ?? 0}
-          link="/my-credits"
-        />
-        <StatCard
-          icon={<ShoppingBag className="w-4 h-4 text-charcoal-subtle" />}
-          label="Active Listings"
-          value={loading ? "--" : stats?.listedCreditsCount ?? 0}
-          link="/my-credits"
-        />
-        <StatCard
-          icon={<Leaf className="w-4 h-4 text-charcoal-subtle" />}
-          label="tCO2e Retired"
-          value={loading ? "--" : (stats?.retiredTonnes ?? 0).toLocaleString("en-IN")}
-          link="/impact"
-        />
+        {isSeller && (
+          <StatCard
+            icon={<FileText className="w-4 h-4 text-charcoal-subtle" />}
+            label="Projects Submitted"
+            value={loading ? "--" : stats?.submittedProjectsCount ?? 0}
+            link="/my-projects"
+          />
+        )}
+        {isBuyer && (
+          <StatCard
+            icon={<Layers className="w-4 h-4 text-charcoal-subtle" />}
+            label="Credits Owned"
+            value={loading ? "--" : stats?.ownedCreditsCount ?? 0}
+            link="/my-credits"
+          />
+        )}
+        {isSeller && (
+          <StatCard
+            icon={<ShoppingBag className="w-4 h-4 text-charcoal-subtle" />}
+            label="Active Listings"
+            value={loading ? "--" : stats?.listedCreditsCount ?? 0}
+            link="/my-projects"
+          />
+        )}
+        {isBuyer && (
+          <StatCard
+            icon={<Leaf className="w-4 h-4 text-charcoal-subtle" />}
+            label="tCO2e Retired"
+            value={loading ? "--" : (stats?.retiredTonnes ?? 0).toLocaleString("en-IN")}
+            link="/impact"
+          />
+        )}
       </div>
 
-      {/* Quick actions */}
+      {/* Quick actions per Patch P1 spec §2: display only enabled capability actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <QuickAction
-          to="/submit"
-          icon={<FileText className="w-5 h-5 text-forest" />}
-          title="Submit Project"
-          desc="Register a new emission reduction project for VVB review"
-        />
-        <QuickAction
-          to="/marketplace"
-          icon={<ShoppingBag className="w-5 h-5 text-forest" />}
-          title="Buy Credits"
-          desc="Browse listed MCUs and offset your carbon footprint"
-        />
-        <QuickAction
-          to="/impact"
-          icon={<TrendingUp className="w-5 h-5 text-forest" />}
-          title="Environmental Impact"
-          desc="View your total retirements and impact certificates"
-        />
+        {isSeller && (
+          <QuickAction
+            to="/submit"
+            icon={<FileText className="w-5 h-5 text-forest" />}
+            title="Submit Project"
+            desc="Register a new emission reduction project for VVB review"
+          />
+        )}
+        {isBuyer && (
+          <QuickAction
+            to="/marketplace"
+            icon={<ShoppingBag className="w-5 h-5 text-forest" />}
+            title="Buy Credits"
+            desc="Browse listed MCUs and offset your carbon footprint"
+          />
+        )}
+        {isBuyer && (
+          <QuickAction
+            to="/impact"
+            icon={<TrendingUp className="w-5 h-5 text-forest" />}
+            title="Environmental Impact"
+            desc="View your total retirements and impact certificates"
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -246,8 +288,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* My projects quick view */}
-          {hasWallet && stats?.myProjects?.length > 0 && (
+          {/* My projects quick view (sellers only per Patch P1 spec §2) */}
+          {isSeller && hasWallet && stats?.myProjects?.length > 0 && (
             <div className="clean-card p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-charcoal">My Projects</h2>

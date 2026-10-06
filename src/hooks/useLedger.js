@@ -1,5 +1,5 @@
 /**
- * useLedger — React hook for reading demo ledger state.
+ * useLedger  -  React hook for reading CarbonChain ledger state.
  * Returns live data from ledgerService, with a refetch function.
  */
 import { useState, useEffect, useCallback } from "react";

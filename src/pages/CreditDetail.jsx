@@ -339,7 +339,7 @@ export default function CreditDetail() {
           </div>
 
           <div className="text-[11px] text-charcoal-subtle text-center">
-            Demo ledger: SHA-256 hash-chained records (simulated blockchain)
+            CarbonChain Ledger: SHA-256 hash-chained, tamper-evident records
           </div>
         </div>
       </div>

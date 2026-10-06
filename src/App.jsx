@@ -32,13 +32,18 @@ import LedgerBlock from "./pages/LedgerBlock";
 import PublicVerify from "./pages/PublicVerify";
 import ProjectDetail from "./pages/ProjectDetail";
 import Transactions from "./pages/Transactions";
+import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
+import { ToastProvider } from "./context/ToastContext";
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <WalletProvider>
-          <AppRoutes />
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
         </WalletProvider>
       </AuthProvider>
     </BrowserRouter>
@@ -60,7 +65,17 @@ function RequireSell({ children }) {
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (isVerifierUser(user)) return <Navigate to="/verifier/queue" replace />;
-  if (!canSell(user)) return <BlockedPage reason="sell" />;
+  if (!canSell(user)) {
+    return (
+      <Navigate
+        to="/dashboard"
+        state={{
+          message: "Your account is set up to buy and retire credits. Selling is not enabled for this account.",
+        }}
+        replace
+      />
+    );
+  }
   return children;
 }
 
@@ -69,7 +84,17 @@ function RequireBuy({ children }) {
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (isVerifierUser(user)) return <Navigate to="/verifier/queue" replace />;
-  if (!canBuy(user)) return <BlockedPage reason="buy" />;
+  if (!canBuy(user)) {
+    return (
+      <Navigate
+        to="/dashboard"
+        state={{
+          message: "Your account is set up to create and sell credits. Buying is not enabled for this account.",
+        }}
+        replace
+      />
+    );
+  }
   return children;
 }
 
@@ -77,7 +102,17 @@ function RequireVerifier({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-  if (!isVerifierUser(user)) return <BlockedPage reason="verifier" />;
+  if (!isVerifierUser(user)) {
+    return (
+      <Navigate
+        to="/dashboard"
+        state={{
+          message: "The verifier section is restricted to authorized verification authorities.",
+        }}
+        replace
+      />
+    );
+  }
   return children;
 }
 
@@ -122,6 +157,7 @@ const ENTERPRISE_PREFIXES = [
   "/verifier",
   "/admin",
   "/profile",
+  "/notifications",
   "/projects/",
   "/credit/",
   "/retire/",
@@ -140,25 +176,28 @@ function AppRoutes() {
     return (
       <EnterpriseLayout>
         <Routes>
-          {/* ── Shared authenticated routes ── */}
-          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
-          <Route path="/transactions" element={<RequireAuth><Transactions /></RequireAuth>} />
-          <Route path="/profile" element={<RequireAuth><Dashboard /></RequireAuth>} />
-          <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
-          <Route path="/ledger" element={<RequireAuth><Transactions /></RequireAuth>} />
-          <Route path="/ledger/:blockIndex" element={<RequireAuth><LedgerBlock /></RequireAuth>} />
+          {/* ── Public / shared routes in EnterpriseLayout ── */}
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/credit/:tokenId" element={<CreditDetail />} />
           <Route path="/projects/:slug" element={<ProjectDetail />} />
           <Route path="/certificate/:tokenId" element={<Certificate />} />
+          <Route path="/ledger/:blockIndex" element={<LedgerBlock />} />
+
+          {/* ── Authenticated shared routes ── */}
+          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+          <Route path="/transactions" element={<RequireAuth><Transactions /></RequireAuth>} />
+          <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+          <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
+          <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
+          <Route path="/ledger" element={<RequireAuth><Transactions /></RequireAuth>} />
 
           {/* ── Sell-only routes ── */}
           <Route path="/submit" element={<RequireSell><SubmitProject /></RequireSell>} />
           <Route path="/my-projects" element={<RequireSell><MyProjects /></RequireSell>} />
 
           {/* ── Buy-only routes ── */}
-          <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />
           <Route path="/my-credits" element={<RequireBuy><MyCredits /></RequireBuy>} />
           <Route path="/impact" element={<RequireBuy><Impact /></RequireBuy>} />
-          <Route path="/credit/:tokenId" element={<RequireBuy><CreditDetail /></RequireBuy>} />
           <Route path="/retire/:tokenId" element={<RequireBuy><RetireCredit /></RequireBuy>} />
 
           {/* ── Verifier-only routes ── */}

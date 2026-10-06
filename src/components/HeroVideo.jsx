@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 const FADE = 0.5; // seconds
 
 /**
- * HeroVideo — exact implementation from sprout-hero reference.
+ * HeroVideo  -  exact implementation from sprout-hero reference.
  * - Placed absolute at the bottom of the hero section.
  * - Custom fade-in / fade-out loop via requestAnimationFrame.
  * - CSS mask dissolves edges into the white background.
@@ -56,13 +56,13 @@ export default function HeroVideo() {
   }, []);
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-0 w-full h-[82vh] min-h-[520px] hero-video-mask">
+    <div className="absolute inset-x-0 bottom-0 z-0 w-full overflow-visible pointer-events-none flex items-end justify-center">
       <video
         ref={videoRef}
-        className="h-full w-full object-cover object-[center_18%]"
+        className="w-full h-auto max-h-[85vh] object-contain object-bottom"
         style={{
           opacity: 0,
-          filter: "saturate(1.65) contrast(1.25) brightness(1.06)",
+          filter: "saturate(1.15) contrast(1.1) brightness(1.02)",
         }}
         src="/hero.mp4"
         poster="/poster.jpg"
@@ -71,8 +71,8 @@ export default function HeroVideo() {
         autoPlay
         preload="auto"
       />
-      {/* gradient overlay — only top and bottom edges, less aggressive */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/95 via-transparent to-white/70" />
+      {/* Light edge blending only */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/90 via-transparent to-transparent" />
     </div>
   );
 }

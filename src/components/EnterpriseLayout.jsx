@@ -22,12 +22,18 @@ import {
   SendHorizonal,
   Leaf,
   ClipboardList,
+  ReceiptText,
 } from "lucide-react";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
 import { shortenAddress } from "../utils/walletUtils";
 import { isVerifierUser, canSell, canBuy } from "../services/roleService";
 import { resetDemoData } from "../services/ledgerService";
+import {
+  getUserNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+} from "../services/notificationService";
 
 export default function EnterpriseLayout({ children }) {
   const navigate = useNavigate();
@@ -38,12 +44,33 @@ export default function EnterpriseLayout({ children }) {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const [userNotifications, setUserNotifications] = useState([]);
   const walletDropdownRef = useRef(null);
+  const notifDropdownRef = useRef(null);
 
+  useEffect(() => {
+    const loadNotifs = () => {
+      if (user) {
+        setUserNotifications(getUserNotifications(user));
+      }
+    };
+    loadNotifs();
+
+    window.addEventListener("cc_notification_added", loadNotifs);
+    window.addEventListener("cc_notification_updated", loadNotifs);
+    return () => {
+      window.removeEventListener("cc_notification_added", loadNotifs);
+      window.removeEventListener("cc_notification_updated", loadNotifs);
+    };
+  }, [user]);
   useEffect(() => {
     function handleClickOutside(event) {
       if (walletDropdownRef.current && !walletDropdownRef.current.contains(event.target)) {
         setWalletDropdownOpen(false);
+      }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
+        setNotifDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -132,7 +159,22 @@ export default function EnterpriseLayout({ children }) {
 
           {/* ── Role-based navigation ── */}
           <nav className="p-3 space-y-0.5">
-            {isVerifier ? (
+            {!user ? (
+              <>
+                <SidebarNavItem
+                  to="/marketplace"
+                  icon={<Store className="w-4 h-4" />}
+                  label="Marketplace"
+                  currentPath={location.pathname}
+                />
+                <SidebarNavItem
+                  to="/login"
+                  icon={<User className="w-4 h-4" />}
+                  label="Sign In"
+                  currentPath={location.pathname}
+                />
+              </>
+            ) : isVerifier ? (
               /* Verifier nav per spec §3.3 */
               <>
                 <SidebarNavItem
@@ -191,6 +233,13 @@ export default function EnterpriseLayout({ children }) {
                       label="My Projects"
                       currentPath={location.pathname}
                     />
+                    <SidebarNavItem
+                      to="/transactions?tab=sales"
+                      icon={<ReceiptText className="w-4 h-4" />}
+                      label="Sales"
+                      currentPath={location.pathname + location.search}
+                      matchPrefix="/transactions?tab=sales"
+                    />
                   </>
                 )}
                 {isBuyer && (
@@ -219,14 +268,20 @@ export default function EnterpriseLayout({ children }) {
                   to="/transactions"
                   icon={<ArrowLeftRight className="w-4 h-4" />}
                   label="Transactions"
-                  currentPath={location.pathname}
-                  matchPrefix="/transactions"
+                  currentPath={location.pathname + location.search}
+                  matchPrefix={location.search.includes("tab=sales") ? null : "/transactions"}
                   altPrefix="/ledger"
                 />
                 <SidebarNavItem
                   to="/notifications"
                   icon={<Bell className="w-4 h-4" />}
                   label="Notifications"
+                  currentPath={location.pathname}
+                />
+                <SidebarNavItem
+                  to="/profile"
+                  icon={<User className="w-4 h-4" />}
+                  label="Profile"
                   currentPath={location.pathname}
                 />
               </>
@@ -332,26 +387,130 @@ export default function EnterpriseLayout({ children }) {
             </button>
           </div>
 
-          {/* Right: org name + sign out */}
+          {/* Right: notifications bell + org name + sign out OR sign in / sign up */}
           <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs font-bold text-gray-900 leading-tight truncate max-w-[160px]">
-                {orgName}
+            {user ? (
+              <>
+                {/* Notification Bell Dropdown */}
+                <div className="relative" ref={notifDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+                    className="relative p-2 rounded-full hover:bg-stone-100 text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
+                    title="Notifications"
+                    aria-label="View notifications"
+                  >
+                    <Bell className="w-4 h-4" />
+                    {userNotifications.filter((n) => !n.read).length > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-600 ring-2 ring-white animate-pulse" />
+                    )}
+                  </button>
+
+                  {notifDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white border border-stone-200 rounded-lg shadow-xl py-2 z-50 text-xs animate-fade-in">
+                      <div className="flex items-center justify-between px-3 pb-2 border-b border-stone-100">
+                        <span className="font-semibold text-stone-900">Notifications</span>
+                        <Link
+                          to="/notifications"
+                          onClick={() => setNotifDropdownOpen(false)}
+                          className="text-[11px] text-[#14532D] hover:underline font-medium"
+                        >
+                          View all ({userNotifications.length})
+                        </Link>
+                      </div>
+
+                      <div className="max-h-72 overflow-y-auto divide-y divide-stone-100">
+                        {userNotifications.length === 0 ? (
+                          <div className="py-6 text-center text-stone-400 text-xs">
+                            No notifications
+                          </div>
+                        ) : (
+                          userNotifications.slice(0, 5).map((n) => (
+                            <div
+                              key={n.id}
+                              className={`p-3 transition-colors ${
+                                n.read ? "bg-white" : "bg-emerald-50/30"
+                              } hover:bg-stone-50`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-semibold text-stone-900 text-xs line-clamp-1">
+                                  {n.title}
+                                </span>
+                                <span className="text-[10px] text-stone-400 font-mono shrink-0">
+                                  {new Date(n.timestamp).toLocaleDateString("en-IN", {
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-stone-600 mt-1 line-clamp-2 leading-relaxed">
+                                {n.message}
+                              </p>
+                              {n.link && (
+                                <Link
+                                  to={n.link}
+                                  onClick={() => {
+                                    markNotificationAsRead(n.id);
+                                    setNotifDropdownOpen(false);
+                                  }}
+                                  className="text-[11px] text-[#14532D] hover:underline font-medium inline-block mt-1"
+                                >
+                                  View details &rarr;
+                                </Link>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      <div className="pt-2 px-3 border-t border-stone-100 text-center">
+                        <Link
+                          to="/notifications"
+                          onClick={() => setNotifDropdownOpen(false)}
+                          className="block py-1 text-xs text-[#14532D] font-semibold hover:underline"
+                        >
+                          Open notification center
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <Link to="/profile" className="text-right hidden sm:block hover:opacity-80 transition-opacity">
+                  <div className="text-xs font-bold text-gray-900 leading-tight truncate max-w-[160px]">
+                    {orgName}
+                  </div>
+                  <div className="text-[10px] text-gray-500 font-medium">{roleBadge}</div>
+                </Link>
+                <div className="w-9 h-9 rounded-full bg-[#0F3822] text-white text-xs font-bold flex items-center justify-center border border-gray-200">
+                  {orgName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-red-700 text-xs font-medium border border-gray-200 hover:border-red-200 transition-colors cursor-pointer ml-1"
+                  title="Sign out of CarbonChain"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-red-500" />
+                  <span className="hidden lg:inline">Sign Out</span>
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="px-3 py-1.5 text-xs font-semibold text-emerald-800 bg-white border border-emerald-600 rounded hover:bg-emerald-50 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-3 py-1.5 text-xs font-semibold text-white bg-[#0F3822] rounded hover:bg-[#133E26] transition-colors"
+                >
+                  Sign Up
+                </Link>
               </div>
-              <div className="text-[10px] text-gray-500 font-medium">{roleBadge}</div>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-[#0F3822] text-white text-xs font-bold flex items-center justify-center border border-gray-200">
-              {orgName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-red-700 text-xs font-medium border border-gray-200 hover:border-red-200 transition-colors cursor-pointer ml-1"
-              title="Sign out of CarbonChain"
-            >
-              <LogOut className="w-3.5 h-3.5 text-red-500" />
-              <span className="hidden lg:inline">Sign Out</span>
-            </button>
+            )}
           </div>
         </header>
 

@@ -16,6 +16,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { deriveAddressFromEmail, isValidEvmAddress, shortenAddress } from "../utils/walletUtils";
 import { USE_REAL_WALLET } from "../config/wallet";
 
@@ -27,6 +28,7 @@ export default function ConnectWalletModal() {
     pendingActionCallback,
   } = useWallet();
   const { user } = useAuth();
+  const toast = useToast();
 
   // Internal modal states: "list" | "connecting" | "approve" | "qr" | "other" | "success"
   const [view, setView] = useState("list");
@@ -145,6 +147,7 @@ export default function ConnectWalletModal() {
     connectWalletSession(sessionData);
     setConnectedAddress(finalAddress);
     setView("success");
+    toast.success(`Wallet connected: ${shortenAddress(finalAddress)}`);
 
     // Show temporary toast
     setShowToast(true);
@@ -463,7 +466,7 @@ export default function ConnectWalletModal() {
                 onClick={handleSimulateScan}
                 className="w-full py-2.5 px-4 rounded-md border border-[#14532D] text-[#14532D] hover:bg-[#14532D]/5 text-xs font-semibold transition-colors cursor-pointer"
               >
-                Simulate scan
+                Continue to Connect
               </button>
               <button
                 type="button"
@@ -526,7 +529,7 @@ export default function ConnectWalletModal() {
                 onClick={handleFillDemoAddress}
                 className="text-[11px] text-[#14532D] hover:underline font-medium cursor-pointer"
               >
-                Use a demo address
+                Use a sample address
               </button>
             </div>
 

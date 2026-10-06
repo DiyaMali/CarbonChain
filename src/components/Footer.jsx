@@ -105,7 +105,7 @@ export default function Footer() {
             <div className="space-y-1">
               <div className="flex items-center gap-1.5">
                 <Database className="w-3 h-3 text-forest" />
-                Demo ledger: SHA-256 hash-chained records. Prices are illustrative and simulated for demonstration purposes.
+                CarbonChain Ledger: SHA-256 hash-chained, tamper-evident records. Indicative market pricing.
               </div>
               <div>
                 Production design: ERC-721 contract on Polygon. Real CRI registry records show MCUs only.

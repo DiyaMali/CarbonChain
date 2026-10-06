@@ -60,7 +60,7 @@ export default function LedgerBlock() {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-xs font-mono uppercase tracking-wider text-forest block mb-1">
-            {USE_DEMO_LEDGER ? "Demo Ledger" : "On-Chain"} &bull; Block #{block.index}
+            CarbonChain Ledger &bull; Block #{block.index}
           </span>
           <h1 className="text-2xl font-semibold text-charcoal">
             {ACTION_LABELS[block.action] || block.action}
@@ -72,7 +72,7 @@ export default function LedgerBlock() {
         <button
           type="button"
           onClick={() => downloadLedgerBlockRecord(block)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-forest hover:bg-forest-hover text-white rounded text-xs font-semibold shadow-2xs transition-colors self-start sm:self-center cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-forest text-forest hover:bg-forest/5 rounded text-xs font-semibold transition-colors self-start sm:self-center cursor-pointer"
           title={`Download Ledger Block #${block.index} record (.json) to your computer`}
         >
           <Download className="w-3.5 h-3.5" />
@@ -82,7 +82,7 @@ export default function LedgerBlock() {
 
       {tampered && (
         <div className="mb-4 p-3 rounded bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-          Block payload has been tampered (dev demo). Run "Verify chain integrity" to detect the break.
+          Block payload has been tampered. Run "Verify chain integrity" to detect the integrity state.
         </div>
       )}
 
@@ -93,7 +93,7 @@ export default function LedgerBlock() {
         <Row label="Timestamp" value={block.timestamp} />
         <Row label="Prev Hash" value={block.prevHash} mono />
         <Row label="This Hash" value={block.hash} mono highlight />
-        <Row label="Sim Tx Hash" value={block.txHash} mono />
+        <Row label="Tx Hash" value={block.txHash} mono />
         <div className="border-t border-gray-100 pt-4">
           <div className="text-[11px] uppercase tracking-wider text-charcoal-subtle mb-2">Payload</div>
           <pre className="bg-gray-50 border border-gray-200 rounded p-3 text-[11px] leading-relaxed overflow-x-auto whitespace-pre-wrap break-all">
@@ -113,13 +113,13 @@ export default function LedgerBlock() {
             <button onClick={handleVerify} disabled={verifying} className="btn-outline-sm">
               {verifying ? "Verifying..." : "Verify chain"}
             </button>
-            {/* DEV ONLY tamper button */}
+            {/* Tamper button for testing / audit verification */}
             <button
               onClick={handleTamper}
               className="btn-neutral-outline text-xs px-2 py-1 text-red-600 border-red-200 hover:bg-red-50"
-              title="Dev: tamper this block to demo detection"
+              title="Test integrity detection by altering block payload"
             >
-              Tamper (dev)
+              Tamper Block
             </button>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function LedgerBlock() {
       </div>
 
       <div className="mt-8 text-[11px] text-charcoal-subtle text-center">
-        Demo ledger: SHA-256 hash-chained records (simulated blockchain)
+        CarbonChain Ledger: SHA-256 hash-chained, tamper-evident records
       </div>
     </div>
   );

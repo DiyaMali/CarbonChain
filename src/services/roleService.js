@@ -1,5 +1,5 @@
 /**
- * CarbonChain — Role & capability enforcement (service layer).
+ * CarbonChain  -  Role & capability enforcement (service layer).
  * All functions check the caller's role and throw friendly errors on violations.
  * Import and call these before any action that is capability-gated.
  *
@@ -10,18 +10,27 @@
 export function canSell(user) {
   if (!user) return false;
   if (user.isVerifier) return false;
-  return Array.isArray(user.capabilities) && user.capabilities.includes("create_sell");
+  return (
+    Array.isArray(user.capabilities) &&
+    (user.capabilities.includes("sell") || user.capabilities.includes("create_sell"))
+  );
 }
 
 export function canBuy(user) {
   if (!user) return false;
   if (user.isVerifier) return false;
-  return Array.isArray(user.capabilities) && user.capabilities.includes("buy_retire");
+  return (
+    Array.isArray(user.capabilities) &&
+    (user.capabilities.includes("buy") || user.capabilities.includes("buy_retire"))
+  );
 }
 
 export function isVerifierUser(user) {
-  return Boolean(user?.isVerifier);
+  return Boolean(user?.isVerifier || user?.role === "Verifier");
 }
+
+export const isSellUser = canSell;
+export const isBuyUser = canBuy;
 
 // ─── Assertion helpers (throw on violation) ───────────────────────────────────
 
@@ -31,7 +40,7 @@ export function assertCanSubmitProject(user) {
     throw new Error("Verifiers cannot submit projects. This action is for selling accounts.");
   if (!canSell(user))
     throw new Error(
-      "Your account is registered for buying only. Project submission is for selling accounts."
+      "Your account is set up to buy and retire credits. Selling is not enabled for this account."
     );
 }
 
@@ -41,7 +50,7 @@ export function assertCanBuy(user) {
     throw new Error("Verifiers cannot buy credits.");
   if (!canBuy(user))
     throw new Error(
-      "Your account is registered for selling only. Buying credits is for buying accounts."
+      "Your account is set up to create and sell credits. Buying is not enabled for this account."
     );
 }
 
@@ -51,7 +60,7 @@ export function assertCanRequestRetirement(user) {
     throw new Error("Verifiers cannot request retirement. Only buyers can.");
   if (!canBuy(user))
     throw new Error(
-      "Your account is registered for selling only. Retirement requests are for buying accounts."
+      "Your account is set up to create and sell credits. Retirement requests are for buying accounts."
     );
 }
 
@@ -64,13 +73,13 @@ export function assertCanApproveProject(user) {
 export function assertCanApproveRetirement(user) {
   if (!user) throw new Error("You must be signed in.");
   if (!isVerifierUser(user))
-    throw new Error("Only a verifier can approve retirements.");
+    throw new Error("Only a verifier can approve a retirement.");
 }
 
 export function assertCanRetireDirect(user) {
-  // Spec §3.2: "Retire a credit directly — NOBODY … only by approving a request"
+  // Spec Patch P1: Direct retirement is blocked; only verifier can approve retirement requests
   throw new Error(
-    "Direct retirement is not permitted. Retirement is executed only when a verifier approves a buyer's request."
+    "Only a verifier can approve a retirement. Direct retirement is not permitted."
   );
 }
 
@@ -142,9 +151,9 @@ export function getNavItems(user) {
 
   if (sell) {
     items.push(
-      { to: "/submit",      label: "Submit Project" },
-      { to: "/my-projects", label: "My Projects" },
-      { to: "/transactions",label: "Sales",        section: "sales" },
+      { to: "/submit",                 label: "Submit Project" },
+      { to: "/my-projects",            label: "My Projects" },
+      { to: "/transactions?tab=sales", label: "Sales" },
     );
   }
 

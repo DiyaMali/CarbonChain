@@ -36,6 +36,7 @@ import {
 } from "../services/ledgerService";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
+import { canBuy, canSell, isVerifierUser } from "../services/roleService";
 import PaymentSheet from "../components/PaymentSheet";
 
 function formatNumber(num) {
@@ -70,12 +71,11 @@ export default function Marketplace() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isMiraVerifier =
+  const isVerifierRole =
     Boolean(user?.isVerifier) ||
     Boolean(isVerifier) ||
     account?.toLowerCase() === DEMO_WALLETS.verifier?.toLowerCase() ||
-    user?.email?.toLowerCase() === "mira@envirocheck.in" ||
-    user?.email?.toLowerCase() === "meera@envirocheck.in";
+    user?.id === "usr_verifier";
 
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [typeFilter, setTypeFilter] = useState("All Types");
@@ -120,7 +120,7 @@ export default function Marketplace() {
           price: cleanAmount * pricePerTonne,
           pricePerTonne,
           owner: p.owner || DEMO_WALLETS.ipp,
-          ownerUserId: p.ownerUserId || "usr_ipp_demo",
+          ownerUserId: p.ownerUserId || "usr_meridian",
           listed: true,
           retired: false,
           retiredAt: null,
@@ -346,12 +346,24 @@ export default function Marketplace() {
 
   const handleBuy = (credit, e, project) => {
     e?.stopPropagation();
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (isVerifierUser(user)) {
+      alert("Verifier accounts cannot purchase credits.");
+      return;
+    }
+    if (!canBuy(user)) {
+      alert("Your account is registered for selling only. Purchasing carbon credits is for buying accounts.");
+      return;
+    }
     if (!account) {
       navigate("/connect-wallet");
       return;
     }
     if (credit.owner === account) {
-      alert("You already own this demo credit.");
+      alert("You cannot purchase credits that you have listed.");
       return;
     }
 
@@ -401,8 +413,8 @@ export default function Marketplace() {
         </div>
       </div>
 
-      {/* Verifier Inspection Mode Banner (Mira only) */}
-      {isMiraVerifier && (
+      {/* Verifier Inspection Mode Banner */}
+      {isVerifierRole && (
         <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-[#003b1b] to-[#124d2c] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border border-emerald-500/30">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
@@ -410,12 +422,12 @@ export default function Marketplace() {
             </div>
             <div>
               <div className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-2">
-                <span>MRV Auditor Mode Active</span>
+                <span>Verification Authority Mode Active</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[11px] text-emerald-200/80">Mira Iyer (EnviroCheck)</span>
+                <span className="text-[11px] text-emerald-200/80">Diya Mali, Verification Authority</span>
               </div>
               <div className="text-xs text-emerald-100/90 mt-0.5">
-                You have verification authority over listed projects. If any data or baseline requires re-examination, use <strong className="text-white font-semibold">"Send Back for Review"</strong> on any project to return it to your Verifier Queue.
+                You have verification authority over listed projects. If any data or baseline requires re-examination, use <strong className="text-white font-semibold">"Send Back for Review"</strong> on any project to return it to your Review Queue.
               </div>
             </div>
           </div>
@@ -466,7 +478,7 @@ export default function Marketplace() {
       {buySuccess && (
         <div className="mb-4 p-3.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-          Demo token {buySuccess} purchased and recorded on simulated ledger block! Go to My Credits to view it.
+          Credit token {buySuccess} purchased and recorded on ledger block! Go to My Credits to view it.
         </div>
       )}
       {buyError && (
@@ -494,7 +506,7 @@ export default function Marketplace() {
           )}
         </div>
         <div className="text-[11px] text-charcoal-muted">
-          Illustrative prices shown for demo ledger trading
+          Indicative market prices per tCO2e (CarbonChain Network)
         </div>
       </div>
 
@@ -602,7 +614,7 @@ export default function Marketplace() {
                 price: est * 150,
                 pricePerTonne: 150,
                 owner: DEMO_WALLETS.ipp,
-                ownerUserId: "usr_ipp_demo",
+                ownerUserId: "usr_meridian",
                 listed: true,
                 retired: false,
               };
@@ -634,7 +646,7 @@ export default function Marketplace() {
                 buyingId={buyingId}
                 onBuy={handleBuy}
                 isHighlighted={isHighlighted}
-                isMiraVerifier={isMiraVerifier}
+                isVerifierRole={isVerifierRole}
                 onSendBack={handleOpenSendBack}
               />
             );
@@ -645,7 +657,7 @@ export default function Marketplace() {
       {/* Illustrative Price Notice & Source Attribution */}
       <div className="mt-12 pt-6 border-t border-gray-200 space-y-3">
         <p className="text-[11px] text-charcoal-subtle text-center">
-          Note: Prices are illustrative and in Indian Rupees. CRI shows no prices, only MCUs per year. Demo ledger uses simulated SHA-256 hash-chained records.
+          Note: Prices are indicative and in Indian Rupees per tCO2e. CRI registry displays estimated annual credit generation without prices. CarbonChain Ledger: SHA-256 hash-chained, tamper-evident records.
         </p>
         <div className="p-4 rounded bg-cream/40 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-charcoal-muted">
           <div>
@@ -684,7 +696,7 @@ export default function Marketplace() {
                   Send Project Back for Review
                 </h3>
                 <span className="text-[11px] font-mono text-amber-700 font-semibold uppercase tracking-wider">
-                  Lead MRV Auditor Control • Mira Iyer
+                  Verification Authority Control • Diya Mali
                 </span>
               </div>
             </div>
@@ -711,7 +723,7 @@ export default function Marketplace() {
                 </div>
               </div>
               <p className="text-[11px] text-amber-900/90 pt-1 leading-relaxed border-t border-amber-200/60">
-                This project will immediately disappear from active Marketplace listings and return to Mira's <strong>Verifier Queue</strong> for full re-examination. The project is <strong>NOT deleted</strong> and can be verified again or rejected later.
+                This project will immediately disappear from active Marketplace listings and return to the <strong>Review Queue</strong> for full re-examination. The project is <strong>NOT deleted</strong> and can be verified again or rejected later.
               </p>
             </div>
 
@@ -775,7 +787,7 @@ function CriProjectCard({
   buyingId,
   onBuy,
   isHighlighted,
-  isMiraVerifier,
+  isVerifierRole,
   onSendBack,
 }) {
   const navigate = useNavigate();
@@ -926,7 +938,7 @@ function CriProjectCard({
               </span>
               {showTooltip && (
                 <div className="absolute right-0 bottom-full mb-1 w-52 p-2 rounded bg-charcoal text-white text-[10px] leading-tight shadow-lg z-20">
-                  Method: CRI SDG scoring, Scale x Intensity per SDG, top 4 summed and divided by 100. Scores here are demo values.
+                  Method: CRI SDG scoring, Scale x Intensity per SDG, top 4 summed and divided by 100. Scores here are illustrative values.
                 </div>
               )}
             </div>
@@ -937,7 +949,7 @@ function CriProjectCard({
           )}
         </div>
 
-        {/* ─── Demo Trading Row ────────────────────────────────────────────── */}
+        {/* ─── Trading Row ────────────────────────────────────────────── */}
         <div className="mt-auto pt-3 border-t border-gray-100">
           {token ? (
             <div>
@@ -946,16 +958,16 @@ function CriProjectCard({
                   <div className="text-sm font-semibold text-charcoal">
                     {formatINR(token.price)}
                   </div>
-                  <div className="text-[10px] text-charcoal-subtle">
-                    Rs {token.pricePerTonne}/t (illustrative)
+                  <div className="text-[10px] text-charcoal-subtle font-mono">
+                    ₹{token.pricePerTonne?.toLocaleString("en-IN") || "450"}/tCO2e (indicative)
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-semibold text-forest">
+                  <div className="text-xs font-semibold text-forest font-mono">
                     {token.amount.toLocaleString("en-IN")} tCO2e
                   </div>
                   <div className="text-[10px] text-emerald-700 font-medium">
-                    Verified in CarbonChain demo
+                    Verified in CarbonChain
                   </div>
                 </div>
               </div>
@@ -976,9 +988,9 @@ function CriProjectCard({
                   <button
                     onClick={(e) => onBuy(token, e, project)}
                     disabled={isBuying}
-                    className="btn-outline text-xs flex-1 py-1.5"
+                    className="btn-outline text-xs flex-1 py-1.5 cursor-pointer"
                   >
-                    {isBuying ? "Confirming..." : "Buy MCU"}
+                    {isBuying ? "Confirming..." : "Buy Credits"}
                   </button>
                 )}
               </div>
@@ -988,9 +1000,9 @@ function CriProjectCard({
               <div className="flex items-center justify-between text-[11px] mb-2">
                 <span className="text-amber-700 font-medium flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  Pending verification in CarbonChain demo
+                  Pending verification
                 </span>
-                <span className="text-[10px] text-charcoal-subtle">
+                <span className="text-[10px] text-charcoal-subtle font-mono">
                   Verifier queue
                 </span>
               </div>
@@ -1023,8 +1035,8 @@ function CriProjectCard({
             </div>
           )}
 
-          {/* ─── Verifier Controls: Send Back for Review (Mira Only) ─── */}
-          {isMiraVerifier && (
+          {/* ─── Verifier Controls: Send Back for Review ─── */}
+          {isVerifierRole && (
             <div
               onClick={(e) => e.stopPropagation()}
               className="mt-3.5 pt-2.5 border-t border-amber-200/80 bg-amber-50/70 -mx-5 -mb-5 px-5 py-2.5 flex items-center justify-between gap-2"

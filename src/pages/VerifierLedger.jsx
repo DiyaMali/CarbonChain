@@ -4,7 +4,7 @@ import { isVerifierUser } from "../services/roleService";
 import LedgerBlock from "./LedgerBlock";
 
 /**
- * Verifier Ledger page — wraps the existing LedgerBlock/Transactions page.
+ * Verifier Ledger page  -  wraps the existing LedgerBlock/Transactions page.
  * Mounted at /verifier/ledger (verifier only).
  */
 export default function VerifierLedger() {

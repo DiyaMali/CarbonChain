@@ -12,10 +12,14 @@ import {
   Leaf,
   Layers,
   Coins,
+  Wallet,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
-import { buyCredit, resolveProjectImage } from "../services/ledgerService";
+import { useToast } from "../context/ToastContext";
+import { buyCredit, resolveProjectImage, PLATFORM_FEE_PERCENT } from "../services/ledgerService";
 import { shortenAddress } from "../utils/walletUtils";
 
 function formatINR(n) {
@@ -30,29 +34,32 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
   const navigate = useNavigate();
   const { account, walletSession, inrBalance, openWalletModal } = useWallet();
   const { user } = useAuth();
+  const toast = useToast();
 
   // Step state: "summary" | "confirm_wallet" | "confirming_ledger" | "success" | "error"
   const [step, setStep] = useState("summary");
   const [errorMessage, setErrorMessage] = useState("");
-  const [completedBlock, setCompletedBlock] = useState(null);
-  const [remainingBalance, setRemainingBalance] = useState(0);
+  const [purchaseResult, setPurchaseResult] = useState(null);
 
   if (!credit) return null;
 
   const projectName = project?.name || credit.project?.name || credit.projectName || "Carbon Credit Project";
   const projectType = project?.type || project?.projectType || credit.project?.projectType || "Clean Energy";
-  const tokenId = credit.id || `MCU-${credit.tokenId || "001"}`;
   const maxAvailable = Math.max(1, Number(credit.amount || 1));
   const pricePerTonne = Number(credit.pricePerTonne || Math.round(Number(credit.price || 0) / (maxAvailable || 1)));
-  const sellerAddress = credit.owner || "0xA1b2c3D4e5f6A7b8C9d0e1F2a3B4c5D6e7F8a9b0";
+  const sellerAddress = credit.owner || "0x7a89f3cd44921b72e90f14ba08d4841b91933ba4";
 
   // Editable Quantity State
   const [quantity, setQuantity] = useState(() => Math.min(10, maxAvailable));
   const parsedQty = Math.max(1, Math.min(Number(quantity) || 1, maxAvailable));
-  const totalPrice = parsedQty * pricePerTonne;
+
+  // Pricing calculations per spec §5 & §100
+  const subtotal = parsedQty * pricePerTonne;
+  const platformFee = Math.round(subtotal * (PLATFORM_FEE_PERCENT || 0.01));
+  const totalPayable = subtotal + platformFee;
 
   const isOwner = account && sellerAddress.toLowerCase() === account.toLowerCase();
-  const hasEnoughFunds = inrBalance >= totalPrice;
+  const hasEnoughFunds = inrBalance >= totalPayable;
 
   const handleDecrement = () => {
     setQuantity((prev) => Math.max(1, (Number(prev) || 1) - 1));
@@ -90,13 +97,13 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
       return;
     }
     if (isOwner) {
-      setErrorMessage("You already own this carbon credit token.");
+      setErrorMessage("You cannot purchase credits that you have listed.");
       setStep("error");
       return;
     }
     if (!hasEnoughFunds) {
       setErrorMessage(
-        `Insufficient wallet balance. Required: ${formatINR(totalPrice)}, Available: ${formatINR(inrBalance)}.`
+        `Insufficient wallet balance. Required: ${formatINR(totalPayable)}, Available: ${formatINR(inrBalance)}.`
       );
       setStep("error");
       return;
@@ -106,17 +113,19 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
   };
 
   const handleRejectInWallet = () => {
-    setErrorMessage("Payment cancelled. No credits were transferred.");
+    setErrorMessage("Payment cancelled by user. No funds or credits were transferred.");
     setStep("summary");
   };
 
   const handleConfirmInWallet = async () => {
     setStep("confirming_ledger");
     try {
-      const result = await buyCredit(credit.id, account, user?.id, parsedQty);
-      setCompletedBlock(result.block);
-      setRemainingBalance(Math.max(0, inrBalance - totalPrice));
+      // 1.5s ledger confirmation step per spec §3.5
+      await new Promise((r) => setTimeout(r, 1500));
+      const result = await buyCredit(credit.id, account, user?.id || "usr_ironbridge", parsedQty);
+      setPurchaseResult(result);
       setStep("success");
+      toast.success(`Purchase completed. ${parsedQty.toLocaleString("en-IN")} tCO2e purchased.`);
       if (typeof onPurchased === "function") {
         onPurchased(result);
       }
@@ -128,19 +137,19 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-[#0F2A1D]/45 backdrop-blur-[2px] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-50 bg-[#0F2A1D]/50 backdrop-blur-[2px] flex items-end sm:items-center justify-center p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white w-full max-w-[460px] rounded-t-2xl sm:rounded-xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white w-full max-w-[480px] rounded-t-2xl sm:rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Top Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 bg-[#FAFBF9]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-[#FAFBF9]">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#14532D]" />
-            <h3 className="text-sm font-semibold text-[#0F2A1D]">
+            <span className="w-2 h-2 rounded-full bg-forest" />
+            <h3 className="text-sm font-semibold text-charcoal">
               {step === "summary" && "Order Summary & Payment"}
-              {step === "confirm_wallet" && "Approve in your wallet"}
-              {step === "confirming_ledger" && "Confirming on Ledger"}
+              {step === "confirm_wallet" && "Confirm in your wallet"}
+              {step === "confirming_ledger" && "Confirming on ledger..."}
               {step === "success" && "Purchase Complete"}
               {step === "error" && "Payment Notice"}
             </h3>
@@ -149,7 +158,7 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
             <button
               type="button"
               onClick={onClose}
-              className="text-stone-400 hover:text-stone-700 p-1 rounded transition-colors"
+              className="text-gray-400 hover:text-charcoal p-1 rounded transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -167,25 +176,25 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
             )}
 
             {/* Project Summary Card */}
-            <div className="flex items-center gap-3.5 p-3 rounded-xl border border-stone-200/80 bg-stone-50/80">
+            <div className="flex items-center gap-3.5 p-3 rounded-lg border border-gray-200 bg-gray-50/70">
               <img
                 src={resolveProjectImage(project || credit.project || credit)}
                 alt={projectName}
-                className="w-12 h-12 rounded-lg object-cover shadow-xs border border-stone-200 shrink-0"
+                className="w-12 h-12 rounded object-cover border border-gray-200 shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-mono uppercase tracking-wider text-stone-500 font-semibold truncate">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-charcoal-subtle font-medium truncate">
                   {projectType}
                 </div>
-                <h4 className="text-sm font-bold text-[#0F2A1D] leading-tight truncate">
+                <h4 className="text-sm font-semibold text-charcoal leading-tight truncate">
                   {projectName}
                 </h4>
-                <p className="text-xs text-stone-500 font-medium mt-0.5">
-                  1 tCO2e • {formatINR(pricePerTonne)} / credit
+                <p className="text-xs text-charcoal-muted mt-0.5">
+                  ₹{pricePerTonne.toLocaleString("en-IN")} / tCO2e
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
-                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-[#14532D] border border-emerald-200">
+                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono">
                   {maxAvailable.toLocaleString("en-IN")} available
                 </span>
               </div>
@@ -194,21 +203,21 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
             {/* Quantity Stepper Input */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-semibold text-stone-700">
-                  Quantity
+                <label className="text-xs font-semibold text-charcoal">
+                  Quantity to Purchase
                 </label>
-                <span className="text-[11px] text-stone-400">
+                <span className="text-[11px] text-charcoal-muted font-mono">
                   Max: {maxAvailable.toLocaleString("en-IN")} tCO2e
                 </span>
               </div>
 
-              <div className="flex items-center border border-stone-300 rounded-lg px-2 py-1.5 bg-white shadow-xs focus-within:border-[#14532D] focus-within:ring-1 focus-within:ring-[#14532D]">
+              <div className="flex items-center border border-gray-300 rounded px-2 py-1.5 bg-white shadow-2xs focus-within:border-forest focus-within:ring-1 focus-within:ring-forest">
                 <button
                   type="button"
                   aria-label="Decrease quantity"
                   onClick={handleDecrement}
                   disabled={parsedQty <= 1}
-                  className="w-8 h-8 flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed rounded text-lg font-semibold transition"
+                  className="w-8 h-8 flex items-center justify-center text-charcoal-muted hover:text-charcoal hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed rounded text-base font-semibold transition cursor-pointer"
                 >
                   −
                 </button>
@@ -219,9 +228,9 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
                   value={quantity}
                   onChange={handleQuantityChange}
                   onBlur={handleQuantityBlur}
-                  className="w-20 text-center border-0 p-0 text-sm font-bold text-stone-900 focus:ring-0 appearance-none bg-transparent"
+                  className="w-24 text-center border-0 p-0 text-sm font-mono font-bold text-charcoal focus:ring-0 appearance-none bg-transparent"
                 />
-                <span className="text-xs text-stone-400 font-medium px-2 border-l border-stone-200 select-none">
+                <span className="text-xs text-charcoal-subtle font-medium px-2 border-l border-gray-200 select-none">
                   tCO2e
                 </span>
                 <div className="flex-1" />
@@ -230,7 +239,7 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
                   aria-label="Increase quantity"
                   onClick={handleIncrement}
                   disabled={parsedQty >= maxAvailable}
-                  className="w-8 h-8 flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed rounded text-lg font-semibold transition"
+                  className="w-8 h-8 flex items-center justify-center text-charcoal-muted hover:text-charcoal hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed rounded text-base font-semibold transition cursor-pointer"
                 >
                   +
                 </button>
@@ -238,16 +247,16 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
 
               {/* Quick Preset Chips */}
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <span className="text-[11px] font-medium text-stone-400 mr-1">Presets:</span>
+                <span className="text-[11px] text-charcoal-subtle mr-1">Presets:</span>
                 {presets.map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setQuantity(p)}
-                    className={`px-2.5 py-0.5 text-xs font-semibold rounded-md border transition ${
+                    className={`px-2.5 py-0.5 text-xs font-mono font-semibold rounded border transition cursor-pointer ${
                       parsedQty === p
-                        ? "text-[#14532D] bg-emerald-50 border-emerald-300"
-                        : "text-stone-600 bg-stone-100 hover:bg-emerald-50/50 border-stone-200"
+                        ? "text-forest bg-forest/10 border-forest"
+                        : "text-charcoal-muted bg-gray-50 hover:bg-gray-100 border-gray-200"
                     }`}
                   >
                     {p}
@@ -256,10 +265,10 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
                 <button
                   type="button"
                   onClick={() => setQuantity(maxAvailable)}
-                  className={`px-2.5 py-0.5 text-xs font-semibold rounded-md border transition ${
+                  className={`px-2.5 py-0.5 text-xs font-mono font-semibold rounded border transition cursor-pointer ${
                     parsedQty === maxAvailable
-                      ? "text-[#14532D] bg-emerald-50 border-emerald-300"
-                      : "text-stone-600 bg-stone-100 hover:bg-emerald-50/50 border-stone-200"
+                      ? "text-forest bg-forest/10 border-forest"
+                      : "text-charcoal-muted bg-gray-50 hover:bg-gray-100 border-gray-200"
                   }`}
                 >
                   Max
@@ -267,53 +276,63 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
               </div>
             </div>
 
-            {/* Total Price Field */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-stone-700">
-                Total Price
+            {/* Live Pricing Breakdown per spec §5 & §100 */}
+            <div className="space-y-1.5 pt-1">
+              <label className="text-xs font-semibold text-charcoal">
+                Price Breakdown
               </label>
-              <div className="w-full border border-stone-200 rounded-lg px-3.5 py-2.5 bg-stone-50/70 flex items-baseline justify-between shadow-xs">
-                <div>
-                  <span className="text-base font-extrabold text-[#0F2A1D] tracking-tight">
-                    {formatINR(totalPrice)}
-                  </span>
-                  <span className="text-[11px] text-stone-500 block font-normal">
-                    {parsedQty.toLocaleString("en-IN")} tCO2e × {formatINR(pricePerTonne)}
-                  </span>
+              <div className="w-full border border-gray-200 rounded p-3 bg-gray-50/60 text-xs space-y-1.5 font-mono">
+                <div className="flex justify-between text-charcoal-muted">
+                  <span>Subtotal ({parsedQty} × ₹{pricePerTonne.toLocaleString("en-IN")}):</span>
+                  <span className="font-semibold text-charcoal">{formatINR(subtotal)}</span>
                 </div>
-                <span className="text-[11px] text-stone-400 font-medium">
-                  Includes platform fee
-                </span>
+                <div className="flex justify-between text-charcoal-muted">
+                  <span>Platform Fee (1%):</span>
+                  <span className="font-semibold text-charcoal">{formatINR(platformFee)}</span>
+                </div>
+                <div className="border-t border-gray-200 pt-1.5 flex justify-between text-sm text-charcoal font-bold">
+                  <span>Total Payable:</span>
+                  <span className="text-forest">{formatINR(totalPayable)}</span>
+                </div>
               </div>
             </div>
 
-            {/* Wallet Section */}
+            {/* Pay With Selector (Spec §3.5 & §79) */}
             <div className="space-y-1.5 pt-1">
-              <label className="text-xs font-semibold text-stone-700">
-                Wallet
+              <label className="text-xs font-semibold text-charcoal">
+                Pay With
               </label>
               {account ? (
-                <div className="w-full border border-stone-200 rounded-lg px-3.5 py-2.5 bg-white flex items-center justify-between text-xs font-mono text-stone-600 shadow-xs">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                    <span>{shortenAddress(account)}</span>
-                  </span>
-                  <div className="flex items-center gap-2 font-sans">
-                    <span className="text-[11px] text-stone-500">
-                      Balance: {formatINR(inrBalance)}
-                    </span>
-                    <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      Connected
-                    </span>
+                <div className="space-y-2">
+                  <div className="w-full border border-forest/40 rounded p-2.5 bg-forest/5 flex items-center justify-between text-xs font-mono text-charcoal">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <div>
+                        <span className="font-semibold block">{shortenAddress(account)}</span>
+                        <span className="text-[10px] text-charcoal-subtle font-sans">
+                          Network: CarbonChain Network
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right font-sans">
+                      <span className="text-[11px] text-charcoal-muted block">
+                        Balance: {formatINR(inrBalance)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Disabled row per spec §3.5: "Other payment methods, coming soon" */}
+                  <div className="w-full border border-dashed border-gray-200 rounded p-2 text-center text-[11px] text-charcoal-subtle bg-gray-50/50">
+                    Other payment methods &bull; Coming soon
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-lg border border-amber-300 bg-amber-50 flex items-center justify-between">
+                <div className="p-3 rounded border border-amber-300 bg-amber-50 flex items-center justify-between">
                   <span className="text-xs text-amber-900 font-medium">No wallet connected</span>
                   <button
                     type="button"
                     onClick={() => openWalletModal()}
-                    className="px-2.5 py-1 rounded-md border border-[#14532D] text-[#14532D] hover:bg-[#14532D]/5 text-xs font-semibold"
+                    className="btn-outline-sm"
                   >
                     Connect Wallet
                   </button>
@@ -321,41 +340,31 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
               )}
             </div>
 
-            {/* Balance remainder preview */}
-            {account && hasEnoughFunds && (
-              <div className="text-[11px] text-stone-500 flex justify-between px-1">
-                <span>Remaining balance after purchase:</span>
-                <span className="font-mono font-semibold text-stone-800">
-                  {formatINR(inrBalance - totalPrice)}
-                </span>
-              </div>
-            )}
-
-            {/* Action Buttons */}
+            {/* Action Button */}
             <div className="pt-2">
               {!account ? (
                 <button
                   type="button"
                   onClick={() => openWalletModal()}
-                  className="w-full py-2.5 px-4 rounded-md border border-[#14532D] bg-[#14532D] text-white hover:bg-[#0f4022] text-xs font-semibold transition-colors cursor-pointer text-center shadow-sm"
+                  className="w-full py-2.5 px-4 rounded border border-forest text-forest hover:bg-forest/5 text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
-                  Connect Wallet
+                  Connect wallet to pay
                 </button>
               ) : !hasEnoughFunds ? (
                 <button
                   type="button"
                   disabled
-                  className="w-full py-2.5 px-4 rounded-md border border-red-300 bg-red-50 text-red-700 text-xs font-semibold cursor-not-allowed text-center"
+                  className="w-full py-2.5 px-4 rounded border border-rose-300 bg-rose-50 text-rose-700 text-xs font-semibold cursor-not-allowed text-center"
                 >
-                  Insufficient wallet balance ({formatINR(totalPrice)} needed)
+                  Insufficient wallet balance ({formatINR(totalPayable)} required)
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handlePayClick}
-                  className="w-full py-2.5 px-4 rounded-md border border-[#14532D] bg-[#14532D] text-white hover:bg-[#0f4022] text-xs font-semibold transition-colors cursor-pointer text-center shadow-sm"
+                  className="w-full py-2.5 px-4 rounded border border-forest text-forest hover:bg-forest/5 text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
-                  Buy {parsedQty.toLocaleString("en-IN")} Credits ({formatINR(totalPrice)})
+                  Pay {formatINR(totalPayable)}
                 </button>
               )}
             </div>
@@ -365,34 +374,34 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
         {/* STEP 2: CONFIRM IN YOUR WALLET */}
         {step === "confirm_wallet" && (
           <div className="p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#14532D] text-white flex items-center justify-center font-bold text-xl mx-auto shadow-xs">
-              {walletSession?.provider ? walletSession.provider[0].toUpperCase() : "M"}
+            <div className="w-12 h-12 rounded-full border border-forest text-forest flex items-center justify-center font-bold text-xl mx-auto">
+              <Wallet className="w-6 h-6 text-forest" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-[#0F2A1D]">
+              <h3 className="text-base font-semibold text-charcoal">
                 Confirm in your wallet
               </h3>
-              <p className="text-xs text-stone-600 mt-1">
-                Approve deduction of {formatINR(totalPrice)} to transfer {parsedQty.toLocaleString("en-IN")} tCO2e to your portfolio.
+              <p className="text-xs text-charcoal-muted mt-1">
+                Approve payment of {formatINR(totalPayable)} for {parsedQty.toLocaleString("en-IN")} tCO2e of carbon credits.
               </p>
             </div>
 
-            <div className="p-3.5 bg-stone-50 rounded-lg border border-stone-200 text-xs text-left space-y-2 font-mono">
+            <div className="p-3.5 bg-gray-50 rounded border border-gray-200 text-xs text-left space-y-2 font-mono">
               <div className="flex justify-between">
-                <span className="text-stone-500">Amount:</span>
-                <span className="font-bold text-stone-900">{formatINR(totalPrice)}</span>
+                <span className="text-charcoal-muted">Subtotal:</span>
+                <span className="font-semibold text-charcoal">{formatINR(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">To Seller:</span>
-                <span className="text-stone-800">{shortenAddress(sellerAddress)}</span>
+                <span className="text-charcoal-muted">Platform Fee (1%):</span>
+                <span className="font-semibold text-charcoal">{formatINR(platformFee)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-stone-500">Token ID:</span>
-                <span className="text-stone-800">{tokenId}</span>
+              <div className="flex justify-between border-t border-gray-200 pt-1.5 font-bold">
+                <span className="text-charcoal">Total Payable:</span>
+                <span className="text-forest">{formatINR(totalPayable)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-stone-500">Network:</span>
-                <span className="text-emerald-700">Polygon Amoy / Local Hash Chain</span>
+              <div className="flex justify-between pt-1">
+                <span className="text-charcoal-muted">Network:</span>
+                <span className="text-forest font-sans">CarbonChain Network</span>
               </div>
             </div>
 
@@ -400,14 +409,14 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
               <button
                 type="button"
                 onClick={handleRejectInWallet}
-                className="w-1/2 py-2 px-4 rounded-md border border-stone-300 text-stone-700 hover:bg-stone-50 text-xs font-semibold transition-colors cursor-pointer"
+                className="btn-neutral-outline w-1/2 py-2 text-xs"
               >
                 Reject
               </button>
               <button
                 type="button"
                 onClick={handleConfirmInWallet}
-                className="w-1/2 py-2 px-4 rounded-md border border-[#14532D] text-[#14532D] hover:bg-[#14532D]/5 text-xs font-semibold transition-colors cursor-pointer"
+                className="px-4 py-2 w-1/2 rounded border border-forest text-forest hover:bg-forest/5 text-xs font-semibold transition-colors cursor-pointer"
               >
                 Confirm
               </button>
@@ -418,59 +427,75 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
         {/* STEP 3: CONFIRMING ON LEDGER */}
         {step === "confirming_ledger" && (
           <div className="p-8 text-center space-y-4">
-            <Loader2 className="w-8 h-8 text-[#14532D] animate-spin mx-auto" />
+            <Loader2 className="w-8 h-8 text-forest animate-spin mx-auto" />
             <div>
-              <h3 className="text-base font-semibold text-[#0F2A1D]">
+              <h3 className="text-base font-semibold text-charcoal">
                 Confirming on ledger...
               </h3>
-              <p className="text-xs text-stone-600 mt-1">
-                Deducting funds and appending block to hash chain
+              <p className="text-xs text-charcoal-muted mt-1">
+                Allocating FIFO serial numbers and recording PURCHASED block
               </p>
             </div>
-            <div className="text-[11px] font-mono text-stone-400">
-              Generating tamper-evident SHA-256 block proof
+            <div className="text-[11px] font-mono text-charcoal-subtle">
+              SHA-256 tamper-evident hash chaining in progress
             </div>
           </div>
         )}
 
-        {/* STEP 4: SUCCESS SCREEN & RECEIPT */}
+        {/* STEP 4: SUCCESS RECEIPT PER SPEC §10 */}
         {step === "success" && (
           <div className="p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-300 flex items-center justify-center mx-auto text-[#14532D]">
-              <Check className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-300 flex items-center justify-center mx-auto text-forest">
+              <Check className="w-6 h-6 text-emerald-700" />
             </div>
 
             <div>
-              <h3 className="text-base font-semibold text-[#0F2A1D]">
-                Purchase complete!
+              <h3 className="text-base font-semibold text-charcoal">
+                Purchase Confirmed!
               </h3>
-              <p className="text-xs text-stone-600 mt-1">
-                You have successfully acquired <strong>{parsedQty.toLocaleString("en-IN")} tCO2e</strong> of verified carbon credits.
+              <p className="text-xs text-charcoal-muted mt-1">
+                Successfully acquired <strong>{parsedQty.toLocaleString("en-IN")} tCO2e</strong> of verified carbon credits.
               </p>
             </div>
 
-            <div className="p-3.5 bg-stone-50 rounded-lg border border-stone-200 text-xs text-left space-y-2">
+            <div className="p-3.5 bg-gray-50 rounded border border-gray-200 text-xs text-left space-y-2 font-mono">
               <div className="flex justify-between">
-                <span className="text-stone-500">Paid:</span>
-                <span className="font-mono font-bold text-stone-900">{formatINR(totalPrice)}</span>
+                <span className="text-charcoal-muted">Payment Ref:</span>
+                <span className="font-bold text-forest">
+                  {purchaseResult?.block?.payload?.paymentReference || "PAY-2026-CONFIRMED"}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">Remaining Balance:</span>
-                <span className="font-mono font-bold text-[#14532D]">{formatINR(remainingBalance)}</span>
+                <span className="text-charcoal-muted">Project:</span>
+                <span className="font-sans font-medium text-charcoal truncate max-w-[200px]">
+                  {projectName}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">Token Serial:</span>
-                <span className="font-mono text-stone-800">{tokenId}</span>
+                <span className="text-charcoal-muted">Quantity:</span>
+                <span className="font-bold text-charcoal">
+                  {parsedQty.toLocaleString("en-IN")} tCO2e
+                </span>
               </div>
-              {completedBlock && (
-                <div className="pt-2 border-t border-stone-200 flex justify-between items-center text-xs">
-                  <span className="text-stone-500 font-mono">Ledger Record:</span>
+              <div className="flex justify-between">
+                <span className="text-charcoal-muted">Serial Range:</span>
+                <span className="text-charcoal font-semibold text-[11px] truncate max-w-[200px]">
+                  {purchaseResult?.block?.payload?.serialRange || "CCI-Allocated"}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-gray-200 pt-1.5 font-bold">
+                <span className="text-charcoal">Amount Paid:</span>
+                <span className="text-forest">{formatINR(totalPayable)}</span>
+              </div>
+              {purchaseResult?.block && (
+                <div className="pt-2 border-t border-gray-200 flex justify-between items-center text-xs">
+                  <span className="text-charcoal-muted">Ledger Block:</span>
                   <Link
-                    to={`/ledger/${completedBlock.index}`}
+                    to={`/ledger/${purchaseResult.block.index}`}
                     onClick={onClose}
-                    className="text-[#14532D] underline font-semibold hover:no-underline inline-flex items-center gap-1 font-mono"
+                    className="text-forest underline font-semibold hover:no-underline inline-flex items-center gap-1"
                   >
-                    View Block #{completedBlock.index}
+                    Block #{purchaseResult.block.index}
                     <ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>
@@ -484,20 +509,21 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
                   onClose();
                   navigate("/my-credits");
                 }}
-                className="w-full sm:w-1/2 py-2 px-3 rounded-md border border-[#14532D] text-[#14532D] hover:bg-[#14532D]/5 text-xs font-semibold transition-colors cursor-pointer"
+                className="w-full sm:w-1/2 py-2 px-3 rounded border border-forest text-forest hover:bg-forest/5 text-xs font-semibold transition-colors cursor-pointer"
               >
-                View my credits & history
+                View my credits
               </button>
               <button
                 type="button"
                 onClick={() => {
                   onClose();
-                  navigate(`/retire/${credit.id}`);
+                  // Open retirement request form
+                  navigate("/my-credits?tab=holdings");
                 }}
-                className="w-full sm:w-1/2 py-2 px-3 rounded-md border border-stone-300 text-stone-800 hover:bg-stone-50 text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                className="w-full sm:w-1/2 py-2 px-3 rounded border border-gray-300 text-charcoal hover:bg-gray-50 text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1"
               >
-                <Leaf className="w-3.5 h-3.5 text-[#14532D]" />
-                <span>Retire now</span>
+                <Leaf className="w-3.5 h-3.5 text-forest" />
+                <span>Request retirement</span>
               </button>
             </div>
           </div>
@@ -506,21 +532,21 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
         {/* STEP 5: ERROR SCREEN */}
         {step === "error" && (
           <div className="p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto text-red-600">
+            <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-600">
               <AlertCircle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-stone-900">
+              <h3 className="text-base font-semibold text-charcoal">
                 Transaction Could Not Complete
               </h3>
-              <p className="text-xs text-red-700 mt-1 max-w-sm mx-auto">
+              <p className="text-xs text-rose-700 mt-1 max-w-sm mx-auto">
                 {errorMessage}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setStep("summary")}
-              className="py-2 px-4 rounded-md border border-stone-300 text-stone-700 hover:bg-stone-50 text-xs font-semibold transition-colors"
+              className="btn-neutral-outline text-xs py-2 px-4"
             >
               Back to Order Summary
             </button>
