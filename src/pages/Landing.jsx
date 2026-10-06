@@ -87,7 +87,7 @@ export default function Landing() {
         {/* Hero content — z-10 */}
         <div
           className="relative z-10 flex flex-col items-center justify-center px-6 pb-20 text-center"
-          style={{ paddingTop: "calc(5.5rem + 1rem)" }}
+          style={{ paddingTop: "calc(5.5rem + 1rem + 1cm)" }}
         >
           {/* Main headline */}
           <h1
