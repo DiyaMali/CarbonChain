@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Credit Detail | CarbonChain</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2314532d'><path d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z'/><path d='M12 6a6 6 0 0 0-6 6c0 2.5 1.5 4.5 4 5.5'/></svg>"/>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              900: '#072e18',
+              800: '#0e4324',
+              700: '#14532d',
+              600: '#166534',
+              100: '#dcfce7',
+              50: '#f0fdf4',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style data-purpose="typography">
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-[#eaf1ec] min-h-screen p-4 md:p-8 text-slate-800">
+
+  <!-- BEGIN: PageTitle -->
+  <header class="max-w-7xl mx-auto mb-4" data-purpose="page-title">
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+        Credit Detail Page
+      </h1>
+      <div class="flex items-center gap-2">
+        <a href="buy-credit.html" class="px-4 py-1.5 text-xs font-medium text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-lg transition">
+          Direct to Buy Screen &rarr;
+        </a>
+      </div>
+    </div>
+  </header>
+  <!-- END: PageTitle -->
+
+  <!-- BEGIN: MainDashboardContainer -->
+  <main class="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden flex flex-col md:flex-row min-h-[640px]" data-purpose="dashboard-frame">
+
+    <!-- BEGIN: LeftSidebar -->
+    <aside class="w-full md:w-60 bg-[#0e4425] text-white flex-shrink-0 flex flex-col justify-between py-6 px-4" data-purpose="sidebar-navigation">
+      <div>
+        <!-- Brand Logo Header -->
+        <a href="credit-detail.html" class="flex items-center gap-2.5 px-3 mb-8 group">
+          <div class="w-7 h-7 rounded-full border-2 border-emerald-400 flex items-center justify-center text-emerald-300 group-hover:scale-105 transition-transform">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z"></path>
+              <path d="M12 6a6 6 0 0 0-6 6c0 2.5 1.5 4.5 4 5.5"></path>
+            </svg>
+          </div>
+          <span class="font-bold text-base tracking-wide text-white">CarbonChain</span>
+        </a>
+
+        <!-- Navigation Menu -->
+        <nav aria-label="Sidebar Menu" class="space-y-1.5">
+          <!-- Dashboard -->
+          <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="credit-detail.html">
+            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <rect height="9" rx="1" width="7" x="3" y="3"></rect>
+              <rect height="5" rx="1" width="7" x="14" y="3"></rect>
+              <rect height="9" rx="1" width="7" x="14" y="12"></rect>
+              <rect height="5" rx="1" width="7" x="3" y="16"></rect>
+            </svg>
+            Dashboard
+          </a>
+
+          <!-- Marketplace (Active) -->
+          <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-600/35 text-white font-medium text-sm border border-emerald-500/20 shadow-inner" href="credit-detail.html">
+            <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"></path>
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+              <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"></path>
+              <path d="M2 7h20"></path>
+            </svg>
+            Marketplace
+          </a>
+
+          <!-- My Projects -->
+          <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="credit-detail.html">
+            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+            </svg>
+            My Projects
+          </a>
+
+          <!-- My Credits -->
+          <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m10 15 5-3-5-3v6Z"></path>
+            </svg>
+            My Credits
+          </a>
+
+          <!-- Transactions -->
+          <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="m3 16 4 4 4-4"></path>
+              <path d="M7 20V4"></path>
+              <path d="m21 8-4-4-4 4"></path>
+              <path d="M17 4v16"></path>
+            </svg>
+            Transactions
+          </a>
+
+          <!-- Retirements -->
+          <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+            </svg>
+            Retirements
+          </a>
+
+          <!-- Profile -->
+          <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="#">
+            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Profile
+          </a>
+        </nav>
+      </div>
+
+      <!-- Wallet Quick Status in Sidebar -->
+      <div class="pt-4 border-t border-emerald-800/60 px-2 text-xs">
+        <div class="flex items-center justify-between text-emerald-200/80">
+          <span class="flex items-center gap-1.5">
+            <span id="sidebar-wallet-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="sidebar-wallet-label">Polygon</span>
+          </span>
+          <span id="sidebar-wallet-addr" class="font-mono text-[11px] text-emerald-300">0x71...338</span>
+        </div>
+      </div>
+    </aside>
+    <!-- END: LeftSidebar -->
+
+    <!-- BEGIN: MainContent -->
+    <div class="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto bg-[#fafbfa]" data-purpose="main-content-area">
+
+      <!-- BEGIN: TopCreditSummary -->
+      <section class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-slate-100" data-purpose="credit-header">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <!-- Project Landscape Thumbnail -->
+          <div class="w-36 h-32 rounded-2xl overflow-hidden shadow-sm flex-shrink-0 border border-slate-200">
+            <img id="project-hero-img" alt="Solar Energy Panels in Nature" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMjCVwWYTnfVPxoGy6qjxdwrwd_kOmSh2SYaFzQ0MT8B1FzNGbjUuYIFw60BxSrOARCO5rA9Qwfrmbrv300nu1O73UiZIaJUo-Lww79mcpqVBwGlDCYuNYXrEyivH-bdKicbJbawYZ5V3GNTwpDvT7Mgu9UWX0MalLyCHPKI8_unXadseB4T7rcjvseg-dX2yNXZskXRve5Crppqw6-ddwF4pbwYTBj-ZLqo7B3Zgkix6EopJ-_bbm"/>
+          </div>
+
+          <!-- Project Details Summary -->
+          <div>
+            <h2 id="project-title" class="text-2xl font-bold text-slate-900 tracking-tight">Solar Energy Project</h2>
+
+            <!-- Badges Row -->
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+              <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <svg class="w-3.5 h-3.5 text-emerald-700" fill="currentColor" viewBox="0 0 20 20">
+                  <path clip-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill-rule="evenodd"></path>
+                </svg>
+                Verified
+              </span>
+
+              <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-slate-600 border border-slate-200">
+                Tokenized
+              </span>
+
+              <span id="badge-availability" class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Available
+              </span>
+            </div>
+
+            <!-- Unit & Price -->
+            <div class="mt-3.5">
+              <p class="text-sm font-semibold text-slate-700">1 tCO₂e Carbon Credit</p>
+              <p class="text-2xl font-extrabold text-emerald-800 mt-0.5">
+                <span id="unit-price-display">₹1,200</span> <span class="text-xs font-medium text-slate-500">/ credit</span>
+              </p>
+            </div>
+
+            <!-- Owner Info -->
+            <div class="flex items-center gap-2 mt-2 text-xs text-slate-600 font-medium">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Owner: <strong id="owner-name" class="text-slate-800">Tata Industries</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buy Action Button -->
+        <div class="self-stretch sm:self-center lg:self-center mt-2 lg:mt-0 flex flex-col items-center gap-2">
+          <a href="buy-credit.html" id="btn-buy-credit" class="w-full sm:w-auto px-8 py-3 bg-[#0e4425] hover:bg-[#125830] active:scale-95 text-white font-medium text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-center">
+            <span>Buy Credit</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
+          <span id="supply-remaining-hint" class="text-[11px] text-slate-500 font-medium">
+            1,000 tCO₂e available
+          </span>
+        </div>
+      </section>
+      <!-- END: TopCreditSummary -->
+
+      <!-- BEGIN: ContentTabs -->
+      <nav aria-label="Tabs" class="flex items-center gap-8 border-b border-slate-200 mt-6" data-purpose="tab-navigation">
+        <button id="tab-btn-info" class="pb-3 text-sm font-semibold text-emerald-900 border-b-2 border-emerald-800 tracking-tight transition-colors">
+          Project Information
+        </button>
+        <button id="tab-btn-record" class="pb-3 text-sm font-medium text-slate-500 hover:text-slate-700 tracking-tight transition-colors">
+          Blockchain Record
+        </button>
+        <a href="transaction-history.html" class="pb-3 text-sm font-medium text-slate-500 hover:text-slate-700 tracking-tight transition-colors flex items-center gap-1">
+          Transaction History
+        </a>
+      </nav>
+      <!-- END: ContentTabs -->
+
+      <!-- BEGIN: CardsGrid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-stretch" data-purpose="cards-section">
+
+        <!-- Left: Project Information Details Card -->
+        <section class="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm flex flex-col justify-between" data-purpose="project-information-card">
+          <h3 class="text-sm font-bold text-slate-900 mb-4 tracking-tight">Project Information</h3>
+
+          <div class="space-y-4">
+            <!-- Row 1: Location -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0 border border-emerald-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Location</p>
+                <p class="text-xs font-semibold text-slate-800">Maharashtra, India</p>
+              </div>
+            </div>
+
+            <!-- Row 2: Project Type -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0 border border-emerald-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Project Type</p>
+                <p class="text-xs font-semibold text-slate-800">Solar Energy</p>
+              </div>
+            </div>
+
+            <!-- Row 3: CO2 Reduction & Remaining Supply -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0 border border-emerald-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+                  <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Available Supply</p>
+                <p class="text-xs font-semibold text-slate-800">
+                  <span id="supply-count-display">1,000</span> tCO₂e
+                  <span class="text-slate-400 font-normal">(of 1,000 tCO₂e total)</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Row 4: Verification -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0 border border-emerald-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <path d="m9 12 2 2 4-4"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Verification</p>
+                <p class="text-xs font-semibold text-slate-800">Verra</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Blockchain Record Card with QR Code -->
+        <section class="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6" data-purpose="blockchain-record-card">
+          <!-- Left side of Blockchain card -->
+          <div class="flex-1 w-full space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 tracking-tight">Blockchain Record</h3>
+
+            <!-- Details List -->
+            <div class="space-y-2.5 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-medium w-28">Token ID:</span>
+                <span id="token-id-display" class="text-slate-800 font-semibold">#1042</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-medium w-28">Created:</span>
+                <span class="text-slate-800 font-semibold">12 Sept 2026</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-medium w-28">Current Owner:</span>
+                <span id="current-owner-display" class="text-blue-600 font-mono font-medium hover:underline cursor-pointer">0x71...338</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-medium w-28">Network:</span>
+                <span class="text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 inline-flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Polygon POS
+                </span>
+              </div>
+            </div>
+
+            <!-- View on PolygonScan Button -->
+            <div class="pt-2">
+              <a class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 border border-slate-300 hover:border-slate-400 hover:bg-slate-50 transition shadow-sm w-full sm:w-auto text-center" href="https://polygonscan.com" target="_blank" rel="noopener noreferrer">
+                View on PolygonScan
+              </a>
+            </div>
+          </div>
+
+          <!-- Right side: QR Code Box -->
+          <div class="w-full sm:w-44 flex flex-col items-center justify-center p-4 bg-slate-50/70 border border-slate-200/80 rounded-xl flex-shrink-0" data-purpose="qr-code-verification">
+            <!-- QR Code Graphic -->
+            <div class="w-24 h-24 bg-white p-1.5 border border-slate-200 rounded-lg shadow-sm flex items-center justify-center">
+              <svg class="w-full h-full text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M2 2h7v7H2zM4 4v3h3V4H4zM15 2h7v7h-7zM17 4v3h3V4h-3zM2 15h7v7H2zM4 17v3h3v-3H4z"></path>
+                <rect height="1" width="1" x="5" y="5"></rect>
+                <rect height="1" width="1" x="18" y="5"></rect>
+                <rect height="1" width="1" x="5" y="18"></rect>
+                <path d="M11 2h2v3h-2zM11 7h2v2h-2zM11 11h2v2h-2zM7 11h2v2H7zM2 11h3v2H2zM15 11h4v2h-4zM11 15h2v4h-2zM15 15h2v2h-2zM19 15h3v4h-3zM15 19h4v3h-4zM21 21h1v1h-1zM7 21h2v1H7zM11 21h2v1h-2z"></path>
+              </svg>
+            </div>
+            <p class="text-[11px] font-medium text-slate-600 text-center mt-2.5 leading-snug">
+              Scan to verify<br/>on PolygonScan
+            </p>
+          </div>
+        </section>
+
+      </div>
+      <!-- END: CardsGrid -->
+
+    </div>
+    <!-- END: MainContent -->
+
+  </main>
+  <!-- END: MainDashboardContainer -->
+
+  <script src="store.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const state = window.CarbonChainStore.getState();
+
+      // Update remaining supply and pricing
+      const supplyCountDisplay = document.getElementById('supply-count-display');
+      const supplyHint = document.getElementById('supply-remaining-hint');
+      const badgeAvailability = document.getElementById('badge-availability');
+      const buyBtn = document.getElementById('btn-buy-credit');
+
+      if (state.project) {
+        const remaining = state.project.remainingSupply;
+        if (supplyCountDisplay) supplyCountDisplay.textContent = remaining.toLocaleString('en-IN');
+        if (supplyHint) supplyHint.textContent = `${remaining.toLocaleString('en-IN')} tCO₂e available`;
+
+        if (remaining <= 0) {
+          if (badgeAvailability) {
+            badgeAvailability.textContent = 'Sold Out';
+            badgeAvailability.className = 'inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200';
+          }
+          if (buyBtn) {
+            buyBtn.textContent = 'Sold Out';
+            buyBtn.classList.add('opacity-50', 'pointer-events-none');
+            buyBtn.removeAttribute('href');
+          }
+        }
+      }
+
+      // Update wallet sidebar indicators
+      const walletAddr = document.getElementById('sidebar-wallet-addr');
+      const walletLabel = document.getElementById('sidebar-wallet-label');
+      const walletDot = document.getElementById('sidebar-wallet-dot');
+      if (walletAddr && state.wallet) {
+        walletAddr.textContent = state.wallet.shortAddress;
+        if (!state.wallet.connected) {
+          walletDot.className = 'w-2 h-2 rounded-full bg-slate-400';
+          walletLabel.textContent = 'Offline';
+          walletAddr.textContent = 'Disconnected';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

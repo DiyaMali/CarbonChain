@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Buy Credit | CarbonChain</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2314532d'><path d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z'/><path d='M12 6a6 6 0 0 0-6 6c0 2.5 1.5 4.5 4 5.5'/></svg>"/>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              900: '#072e18',
+              800: '#0e4324',
+              700: '#14532d',
+              600: '#166534',
+              100: '#dcfce7',
+              50: '#f0fdf4',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style data-purpose="typography">
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-[#eaf1ec] min-h-screen p-4 md:p-8 text-slate-800">
+
+  <!-- Screen Wrapper -->
+  <div class="max-w-7xl mx-auto flex flex-col gap-4">
+
+    <!-- Top Breadcrumb / Title Bar -->
+    <header class="flex items-center justify-between" data-purpose="screen-title">
+      <div class="flex items-center gap-3">
+        <a href="credit-detail.html" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 hover:text-emerald-950 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to Credit Detail
+        </a>
+        <span class="text-slate-300">/</span>
+        <h1 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">Buy Credit</h1>
+      </div>
+
+      <!-- Quick Dev Testing Control -->
+      <div class="flex items-center gap-2 bg-white/70 border border-slate-200/80 px-3 py-1 rounded-lg text-xs text-slate-600">
+        <label class="flex items-center gap-1.5 cursor-pointer select-none">
+          <input type="checkbox" id="chk-simulate-error" class="rounded text-emerald-700 focus:ring-emerald-600 border-slate-300 w-3.5 h-3.5"/>
+          <span class="text-[11px] font-medium">Simulate Polygon Error</span>
+        </label>
+      </div>
+    </header>
+
+    <!-- Main Container Frame -->
+    <main class="w-full bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden flex flex-col md:flex-row min-h-[640px]" data-purpose="buy-credit-frame">
+
+      <!-- Navigation Sidebar -->
+      <aside class="w-full md:w-60 bg-[#0e4425] text-white flex-shrink-0 flex flex-col justify-between py-6 px-4" data-purpose="sidebar-navigation">
+        <div>
+          <!-- Logo Header -->
+          <a href="credit-detail.html" class="flex items-center gap-2.5 px-3 mb-8 group">
+            <div class="w-7 h-7 rounded-full border-2 border-emerald-400 flex items-center justify-center text-emerald-300 group-hover:scale-105 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z"></path>
+                <path d="M12 6a6 6 0 0 0-6 6c0 2.5 1.5 4.5 4 5.5"></path>
+              </svg>
+            </div>
+            <span class="font-bold text-base tracking-wide text-white">CarbonChain</span>
+          </a>
+
+          <!-- Navigation Links -->
+          <nav class="space-y-1.5">
+            <!-- Dashboard -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="credit-detail.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <rect height="9" rx="1" width="7" x="3" y="3"></rect>
+                <rect height="5" rx="1" width="7" x="14" y="3"></rect>
+                <rect height="9" rx="1" width="7" x="14" y="12"></rect>
+                <rect height="5" rx="1" width="7" x="3" y="16"></rect>
+              </svg>
+              Dashboard
+            </a>
+
+            <!-- Marketplace (Active) -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-600/35 text-white font-medium text-sm border border-emerald-500/20 shadow-inner" href="credit-detail.html">
+              <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"></path>
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"></path>
+                <path d="M2 7h20"></path>
+              </svg>
+              Marketplace
+            </a>
+
+            <!-- My Projects -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="credit-detail.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+              </svg>
+              My Projects
+            </a>
+
+            <!-- My Credits -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="m10 15 5-3-5-3v6Z"></path>
+              </svg>
+              My Credits
+            </a>
+
+            <!-- Transactions -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Transactions
+            </a>
+
+            <!-- Retirements -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 2v8"></path>
+                <path d="m4.93 10.93 1.41 1.41"></path>
+                <path d="M2 18h2"></path>
+                <path d="M20 18h2"></path>
+                <path d="m19.07 10.93-1.41 1.41"></path>
+                <path d="M22 22H2"></path>
+                <path d="m16 6-4 4-4-4"></path>
+                <path d="M16 18a4 4 0 0 0-8 0"></path>
+              </svg>
+              Retirements
+            </a>
+
+            <!-- Profile -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="#">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Profile
+            </a>
+          </nav>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="pt-4 border-t border-emerald-800/60 text-xs text-emerald-200/80 px-2 flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Polygon POS
+          </span>
+          <span class="font-mono text-[11px] text-emerald-300">#1042</span>
+        </div>
+      </aside>
+
+      <!-- Content Area -->
+      <section class="flex-1 p-6 sm:p-10 flex flex-col justify-start bg-slate-50/50" data-purpose="purchase-modal-container">
+        
+        <!-- Section Header -->
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 tracking-tight">Buy Carbon Credit</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Purchases are verified and recorded on Polygon blockchain</p>
+          </div>
+          <div class="text-right">
+            <span class="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">Remaining Supply</span>
+            <span id="supply-badge" class="text-xs font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-block mt-0.5">
+              1,000 tCO₂e
+            </span>
+          </div>
+        </div>
+
+        <!-- Form Card Container -->
+        <div class="w-full max-w-lg bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+
+          <!-- Project Summary Card -->
+          <div class="flex items-center gap-3.5 p-3 rounded-xl border border-slate-100 bg-[#f9fbf9]" data-purpose="project-summary">
+            <img alt="Solar Energy Project" class="w-12 h-12 rounded-lg object-cover shadow-sm border border-slate-200/80 shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMjCVwWYTnfVPxoGy6qjxdwrwd_kOmSh2SYaFzQ0MT8B1FzNGbjUuYIFw60BxSrOARCO5rA9Qwfrmbrv300nu1O73UiZIaJUo-Lww79mcpqVBwGlDCYuNYXrEyivH-bdKicbJbawYZ5V3GNTwpDvT7Mgu9UWX0MalLyCHPKI8_unXadseB4T7rcjvseg-dX2yNXZskXRve5Crppqw6-ddwF4pbwYTBj-ZLqo7B3Zgkix6EopJ-_bbm"/>
+            <div class="flex flex-col flex-1">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-slate-900 leading-tight">Solar Energy Project</h3>
+                <span class="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-100">Verra Verified</span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium mt-1">1 tCO₂e = ₹1,200 per credit • Polygon</p>
+            </div>
+          </div>
+
+          <!-- Mode Toggle: By Quantity vs By Budget -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-slate-700">Purchase Method</label>
+            <div class="grid grid-cols-2 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 text-xs font-medium">
+              <button type="button" id="tab-mode-qty" class="py-1.5 rounded-lg bg-white text-emerald-900 font-semibold shadow-xs transition-all text-center">
+                By Quantity (tCO₂e)
+              </button>
+              <button type="button" id="tab-mode-budget" class="py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center">
+                By Budget (₹ INR)
+              </button>
+            </div>
+          </div>
+
+          <!-- INPUT SECTION 1: By Quantity -->
+          <div id="section-mode-qty" class="flex flex-col gap-2.5">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold text-slate-700">Quantity</label>
+                <span id="supply-limit-text" class="text-[11px] text-slate-400">Max: 1,000 tCO₂e</span>
+              </div>
+              <div class="flex items-center border border-slate-200 rounded-lg px-2 py-1.5 bg-white shadow-xs focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600">
+                <button aria-label="Decrease quantity" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded text-base font-semibold transition" id="btn-decrement" type="button">
+                  −
+                </button>
+                <input class="w-20 text-center border-0 p-0 text-sm font-semibold text-slate-800 focus:ring-0 appearance-none bg-transparent" id="quantity-input" min="1" type="number" value="10"/>
+                <span class="text-xs text-slate-400 font-medium px-2 border-l border-slate-200 select-none">tCO₂e</span>
+                <div class="flex-1"></div>
+                <button aria-label="Increase quantity" class="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded text-base font-semibold transition" id="btn-increment" type="button">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Preset Chips -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <span class="text-[11px] font-medium text-slate-400 mr-1">Presets:</span>
+              <button type="button" class="preset-chip px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200/80 rounded-lg transition" data-qty="1">1</button>
+              <button type="button" class="preset-chip px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200/80 rounded-lg transition" data-qty="5">5</button>
+              <button type="button" class="preset-chip px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-300 rounded-lg transition" data-qty="10">10</button>
+              <button type="button" class="preset-chip px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200/80 rounded-lg transition" data-qty="25">25</button>
+              <button type="button" class="preset-chip px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200/80 rounded-lg transition" data-qty="50">50</button>
+              <button type="button" class="preset-chip px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200/80 rounded-lg transition" data-qty="max">Max</button>
+            </div>
+          </div>
+
+          <!-- INPUT SECTION 2: By Budget (Hidden by default) -->
+          <div id="section-mode-budget" class="hidden flex-col gap-2">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold text-slate-700">Enter Budget</label>
+                <span class="text-[11px] text-slate-400">Min: ₹1,224</span>
+              </div>
+              <div class="flex items-center border border-slate-200 rounded-lg px-3 py-2 bg-white shadow-xs focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600">
+                <span class="text-sm font-semibold text-slate-400 mr-2 select-none">₹</span>
+                <input type="number" id="budget-input" min="1224" step="100" placeholder="15000" value="12240" class="w-full border-0 p-0 text-sm font-semibold text-slate-800 focus:ring-0 appearance-none bg-transparent"/>
+                <span class="text-xs text-slate-400 font-medium ml-2">INR</span>
+              </div>
+            </div>
+            
+            <!-- Live Conversion Badge -->
+            <div id="budget-conversion-box" class="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100 text-xs text-emerald-900 flex items-center justify-between">
+              <span id="budget-credits-msg" class="font-medium">Buys 10 credits</span>
+              <span id="budget-leftover-msg" class="text-slate-500 font-normal">₹0 unused</span>
+            </div>
+          </div>
+
+          <!-- Inline Error / Warning Message -->
+          <div id="input-error-msg" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5 flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span id="input-error-text">Please enter a valid amount</span>
+          </div>
+
+          <!-- Total Price Breakdown -->
+          <div class="flex flex-col gap-2 pt-1 border-t border-slate-100" data-purpose="total-price-display">
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <span>Credits Subtotal (<span id="summary-qty">10</span> × ₹1,200)</span>
+              <span id="summary-subtotal" class="font-medium text-slate-700">₹12,000</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <span class="flex items-center gap-1">
+                Platform Fee (2%)
+                <span class="text-[10px] text-slate-400 cursor-help" title="Standard Polygon protocol fee">ⓘ</span>
+              </span>
+              <span id="summary-fee" class="font-medium text-slate-700">₹240</span>
+            </div>
+            <div class="w-full border-t border-dashed border-slate-200 pt-2 flex items-baseline justify-between">
+              <div>
+                <span class="text-xs font-semibold text-slate-800">Total Payable</span>
+                <span class="block text-[11px] text-emerald-700 font-medium">Includes 2% platform fee</span>
+              </div>
+              <span class="text-xl font-bold text-slate-900 tracking-tight" id="total-price-text">₹12,240</span>
+            </div>
+          </div>
+
+          <!-- Wallet Status Field -->
+          <div class="flex flex-col gap-1.5 pt-1" data-purpose="wallet-status">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-700">Payment Wallet</label>
+              <!-- Test wallet toggle link -->
+              <button type="button" id="btn-toggle-wallet" class="text-[11px] text-emerald-800 hover:underline">
+                Toggle Disconnect
+              </button>
+            </div>
+
+            <!-- Connected View -->
+            <div id="wallet-connected-box" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 bg-white flex items-center justify-between text-xs font-mono text-slate-600 shadow-xs">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                <span id="wallet-addr-display">0x71...338</span>
+              </span>
+              <span class="text-[11px] font-sans font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/50">
+                Connected
+              </span>
+            </div>
+
+            <!-- Disconnected View (Hidden by default) -->
+            <div id="wallet-disconnected-box" class="hidden w-full border border-amber-200 bg-amber-50/60 rounded-lg px-3.5 py-2.5 flex items-center justify-between text-xs text-amber-900">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                <span>No wallet connected</span>
+              </span>
+              <span class="text-[11px] font-medium text-amber-700">Required</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col gap-2.5 pt-2" data-purpose="action-buttons">
+            <!-- Connect Wallet Button (Only visible if disconnected) -->
+            <button id="btn-connect-wallet" class="hidden w-full bg-[#14532d] hover:bg-[#0f4022] active:bg-[#0b311a] text-white font-medium py-2.5 rounded-xl text-xs sm:text-sm tracking-wide transition shadow-sm items-center justify-center gap-2" type="button">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="2" y="4" width="20" height="16" rx="3" stroke-linecap="round"/>
+                <path d="M16 12h.01"/>
+              </svg>
+              <span>Connect Wallet (Polygon)</span>
+            </button>
+
+            <!-- Buy Credits Button (Disabled if disconnected or invalid) -->
+            <button id="btn-buy-credits" class="w-full bg-[#0e4425] hover:bg-[#125830] active:scale-[0.99] text-white font-semibold py-3 rounded-xl text-xs sm:text-sm tracking-wide transition shadow-md flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:shadow-none" type="button">
+              <span id="btn-buy-text">Buy Credits</span>
+            </button>
+            <p id="wallet-disabled-hint" class="hidden text-center text-[11px] text-amber-700">
+              Please connect your wallet above to complete this purchase.
+            </p>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- BEGIN: Success Modal Popup -->
+  <div id="modal-success" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-labelledby="modal-success-title">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 text-slate-800 flex flex-col items-center animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Checkmark SVG Icon -->
+      <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 border border-emerald-200 shadow-inner">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+
+      <h3 id="modal-success-title" class="text-xl font-bold text-slate-900 tracking-tight text-center">Transaction successful</h3>
+      <p class="text-xs text-slate-500 mt-1 text-center">Your carbon credit purchase has been settled on Polygon network.</p>
+
+      <!-- Details Summary Card -->
+      <div class="w-full bg-[#fafbfa] border border-slate-200/80 rounded-xl p-4 my-5 space-y-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Project:</span>
+          <span class="font-semibold text-slate-800" id="success-project-name">Solar Energy Project</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Credits Bought:</span>
+          <span class="font-bold text-emerald-800" id="success-qty-display">10 tCO₂e</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Total Paid:</span>
+          <span class="font-bold text-slate-900" id="success-total-display">₹12,240</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Token ID:</span>
+          <span class="font-mono text-slate-700" id="success-token-display">#1043</span>
+        </div>
+        <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+          <span class="text-slate-500">Tx Hash:</span>
+          <span class="font-mono text-blue-600 font-medium" id="success-txhash-display">0x71...338</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-2.5 w-full">
+        <a href="transaction-history.html" id="btn-view-history" class="flex-1 py-2.5 px-4 bg-[#0e4425] hover:bg-[#125830] text-white text-xs sm:text-sm font-semibold rounded-xl text-center shadow-sm transition">
+          View transaction history
+        </a>
+        <button type="button" id="btn-close-success" class="py-2.5 px-4 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-medium rounded-xl transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- END: Success Modal Popup -->
+
+  <!-- BEGIN: Error Modal Popup -->
+  <div id="modal-error" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-labelledby="modal-error-title">
+    <div class="bg-white rounded-2xl shadow-2xl border border-red-200 max-w-md w-full p-6 text-slate-800 flex flex-col items-center animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Warning Alert SVG Icon -->
+      <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4 border border-red-200 shadow-inner">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+
+      <h3 id="modal-error-title" class="text-xl font-bold text-slate-900 tracking-tight text-center">Transaction failed</h3>
+      <p id="error-message-detail" class="text-xs text-slate-500 mt-1 text-center">
+        Unable to confirm transaction on Polygon network. Please check your network or try again.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-2.5 w-full mt-6">
+        <button type="button" id="btn-try-again" class="flex-1 py-2.5 px-4 bg-red-700 hover:bg-red-800 text-white text-xs sm:text-sm font-semibold rounded-xl text-center shadow-sm transition">
+          Try again
+        </button>
+        <button type="button" id="btn-close-error" class="py-2.5 px-4 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-medium rounded-xl transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- END: Error Modal Popup -->
+
+  <script src="store.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const Store = window.CarbonChainStore;
+      let state = Store.getState();
+
+      // UI Elements
+      const tabModeQty = document.getElementById('tab-mode-qty');
+      const tabModeBudget = document.getElementById('tab-mode-budget');
+      const sectionQty = document.getElementById('section-mode-qty');
+      const sectionBudget = document.getElementById('section-mode-budget');
+
+      const qtyInput = document.getElementById('quantity-input');
+      const btnDecrement = document.getElementById('btn-decrement');
+      const btnIncrement = document.getElementById('btn-increment');
+      const presetChips = document.querySelectorAll('.preset-chip');
+      const budgetInput = document.getElementById('budget-input');
+      const budgetCreditsMsg = document.getElementById('budget-credits-msg');
+      const budgetLeftoverMsg = document.getElementById('budget-leftover-msg');
+
+      const inputErrorMsg = document.getElementById('input-error-msg');
+      const inputErrorText = document.getElementById('input-error-text');
+
+      const summaryQty = document.getElementById('summary-qty');
+      const summarySubtotal = document.getElementById('summary-subtotal');
+      const summaryFee = document.getElementById('summary-fee');
+      const totalPriceText = document.getElementById('total-price-text');
+      const supplyBadge = document.getElementById('supply-badge');
+      const supplyLimitText = document.getElementById('supply-limit-text');
+
+      const walletConnectedBox = document.getElementById('wallet-connected-box');
+      const walletDisconnectedBox = document.getElementById('wallet-disconnected-box');
+      const btnConnectWallet = document.getElementById('btn-connect-wallet');
+      const btnToggleWallet = document.getElementById('btn-toggle-wallet');
+      const walletAddrDisplay = document.getElementById('wallet-addr-display');
+      const walletDisabledHint = document.getElementById('wallet-disabled-hint');
+
+      const btnBuyCredits = document.getElementById('btn-buy-credits');
+      const btnBuyText = document.getElementById('btn-buy-text');
+      const chkSimulateError = document.getElementById('chk-simulate-error');
+
+      // Modals
+      const modalSuccess = document.getElementById('modal-success');
+      const modalError = document.getElementById('modal-error');
+      const btnCloseSuccess = document.getElementById('btn-close-success');
+      const btnCloseError = document.getElementById('btn-close-error');
+      const btnTryAgain = document.getElementById('btn-try-again');
+      const successQtyDisplay = document.getElementById('success-qty-display');
+      const successTotalDisplay = document.getElementById('success-total-display');
+      const successTokenDisplay = document.getElementById('success-token-display');
+      const successTxhashDisplay = document.getElementById('success-txhash-display');
+
+      let currentMode = 'quantity'; // 'quantity' or 'budget'
+      let activeQuantity = 10;
+      let isProcessing = false;
+
+      function getRemainingSupply() {
+        return state.project ? state.project.remainingSupply : 1000;
+      }
+
+      function updateSupplyDisplays() {
+        const remaining = getRemainingSupply();
+        supplyBadge.textContent = `${remaining.toLocaleString('en-IN')} tCO₂e`;
+        supplyLimitText.textContent = `Max: ${remaining.toLocaleString('en-IN')} tCO₂e`;
+      }
+
+      function updateWalletUI() {
+        const isConnected = state.wallet && state.wallet.connected;
+        if (isConnected) {
+          walletConnectedBox.classList.remove('hidden');
+          walletDisconnectedBox.classList.add('hidden');
+          btnConnectWallet.classList.add('hidden');
+          btnBuyCredits.classList.remove('hidden');
+          walletDisabledHint.classList.add('hidden');
+          btnToggleWallet.textContent = 'Disconnect';
+          if (walletAddrDisplay) walletAddrDisplay.textContent = state.wallet.shortAddress;
+        } else {
+          walletConnectedBox.classList.add('hidden');
+          walletDisconnectedBox.classList.remove('hidden');
+          btnConnectWallet.classList.remove('hidden');
+          btnConnectWallet.classList.add('flex');
+          walletDisabledHint.classList.remove('hidden');
+          btnToggleWallet.textContent = 'Connect';
+        }
+        validateAndRefreshPricing();
+      }
+
+      function validateAndRefreshPricing() {
+        const remaining = getRemainingSupply();
+        let qty = 0;
+        let hasError = false;
+        let errorText = '';
+
+        if (currentMode === 'quantity') {
+          const raw = qtyInput.value.trim();
+          const parsed = parseInt(raw, 10);
+          if (raw === '' || isNaN(parsed) || parsed < 1) {
+            hasError = true;
+            errorText = 'Quantity must be at least 1 credit.';
+            qty = 0;
+          } else if (parsed > remaining) {
+            hasError = true;
+            errorText = `Only ${remaining.toLocaleString('en-IN')} credits available.`;
+            qty = remaining;
+          } else {
+            qty = parsed;
+          }
+        } else {
+          // Budget mode
+          const budget = parseFloat(budgetInput.value) || 0;
+          const calc = Store.calculateFromBudget(budget);
+          if (calc.error) {
+            hasError = true;
+            errorText = calc.error;
+            qty = 0;
+            budgetCreditsMsg.textContent = 'Buys 0 credits';
+            budgetLeftoverMsg.textContent = `Unused: ${Store.formatINR(budget)}`;
+          } else {
+            if (calc.quantity > remaining) {
+              hasError = true;
+              errorText = `Budget would purchase ${calc.quantity} credits, but only ${remaining} are available.`;
+              qty = remaining;
+            } else {
+              qty = calc.quantity;
+            }
+            budgetCreditsMsg.textContent = `Buys ${calc.quantity} credits`;
+            budgetLeftoverMsg.textContent = `${Store.formatINR(calc.unused)} unused`;
+          }
+        }
+
+        activeQuantity = qty;
+
+        // Show/hide error
+        if (hasError) {
+          inputErrorMsg.classList.remove('hidden');
+          inputErrorText.textContent = errorText;
+        } else {
+          inputErrorMsg.classList.add('hidden');
+        }
+
+        // Calculate breakdown
+        const pricing = Store.calculatePricing(qty);
+        summaryQty.textContent = qty.toLocaleString('en-IN');
+        summarySubtotal.textContent = Store.formatINR(pricing.subtotal);
+        summaryFee.textContent = Store.formatINR(pricing.platformFee);
+        totalPriceText.textContent = Store.formatINR(pricing.total);
+
+        // Update Preset Chips active styling
+        presetChips.forEach(chip => {
+          const val = chip.getAttribute('data-qty');
+          const isMatch = (val === 'max' && qty === remaining) || parseInt(val, 10) === qty;
+          if (isMatch && currentMode === 'quantity') {
+            chip.className = 'preset-chip px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-300 rounded-lg transition';
+          } else {
+            chip.className = 'preset-chip px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200/80 rounded-lg transition';
+          }
+        });
+
+        // Determine Buy button enable/disable
+        const isWalletConnected = state.wallet && state.wallet.connected;
+        const canBuy = !hasError && qty >= 1 && qty <= remaining && isWalletConnected && !isProcessing;
+        btnBuyCredits.disabled = !canBuy;
+      }
+
+      // Mode switching
+      tabModeQty.addEventListener('click', () => {
+        currentMode = 'quantity';
+        tabModeQty.className = 'py-1.5 rounded-lg bg-white text-emerald-900 font-semibold shadow-xs transition-all text-center';
+        tabModeBudget.className = 'py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center';
+        sectionQty.classList.remove('hidden');
+        sectionBudget.classList.add('hidden');
+        validateAndRefreshPricing();
+      });
+
+      tabModeBudget.addEventListener('click', () => {
+        currentMode = 'budget';
+        tabModeBudget.className = 'py-1.5 rounded-lg bg-white text-emerald-900 font-semibold shadow-xs transition-all text-center';
+        tabModeQty.className = 'py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center';
+        sectionBudget.classList.remove('hidden');
+        sectionQty.classList.add('hidden');
+        validateAndRefreshPricing();
+      });
+
+      // Stepper
+      btnDecrement.addEventListener('click', () => {
+        let val = parseInt(qtyInput.value, 10) || 1;
+        if (val > 1) {
+          qtyInput.value = val - 1;
+          validateAndRefreshPricing();
+        }
+      });
+
+      btnIncrement.addEventListener('click', () => {
+        let val = parseInt(qtyInput.value, 10) || 1;
+        const max = getRemainingSupply();
+        if (val < max) {
+          qtyInput.value = val + 1;
+          validateAndRefreshPricing();
+        }
+      });
+
+      qtyInput.addEventListener('input', validateAndRefreshPricing);
+      budgetInput.addEventListener('input', validateAndRefreshPricing);
+
+      // Preset chips
+      presetChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          const val = chip.getAttribute('data-qty');
+          const max = getRemainingSupply();
+          if (val === 'max') {
+            qtyInput.value = max;
+          } else {
+            qtyInput.value = Math.min(parseInt(val, 10), max);
+          }
+          if (currentMode !== 'quantity') {
+            tabModeQty.click();
+          } else {
+            validateAndRefreshPricing();
+          }
+        });
+      });
+
+      // Wallet button actions
+      btnToggleWallet.addEventListener('click', () => {
+        state = Store.toggleWallet();
+        updateWalletUI();
+      });
+
+      btnConnectWallet.addEventListener('click', () => {
+        state = Store.setWalletConnected(true);
+        updateWalletUI();
+      });
+
+      chkSimulateError.addEventListener('change', (e) => {
+        Store.setSimulateError(e.target.checked);
+      });
+
+      // Purchase execution
+      btnBuyCredits.addEventListener('click', () => {
+        if (isProcessing) return;
+        const remaining = getRemainingSupply();
+        if (activeQuantity < 1 || activeQuantity > remaining) return;
+        if (!state.wallet.connected) return;
+
+        isProcessing = true;
+        btnBuyCredits.disabled = true;
+        btnBuyText.innerHTML = `
+          <span class="inline-flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Confirming on Polygon...
+          </span>
+        `;
+
+        // 2-second simulated delay
+        setTimeout(() => {
+          isProcessing = false;
+          btnBuyText.textContent = 'Buy Credits';
+
+          try {
+            const tx = Store.recordPurchase(activeQuantity);
+            state = Store.getState();
+            updateSupplyDisplays();
+
+            // Populate Success Modal
+            successQtyDisplay.textContent = `${tx.quantity.toLocaleString('en-IN')} tCO₂e`;
+            successTotalDisplay.textContent = Store.formatINR(tx.amountPaid);
+            successTokenDisplay.textContent = tx.tokenId;
+            successTxhashDisplay.textContent = tx.shortTxHash;
+
+            modalSuccess.classList.remove('hidden');
+            btnCloseSuccess.focus();
+          } catch (err) {
+            console.error('Purchase failed:', err);
+            const errorDetail = document.getElementById('error-message-detail');
+            if (errorDetail) {
+              errorDetail.textContent = err.message || 'Unable to confirm transaction on Polygon network.';
+            }
+            modalError.classList.remove('hidden');
+            btnTryAgain.focus();
+          } finally {
+            validateAndRefreshPricing();
+          }
+        }, 2000);
+      });
+
+      // Modal buttons
+      btnCloseSuccess.addEventListener('click', () => {
+        modalSuccess.classList.add('hidden');
+        window.location.href = 'credit-detail.html';
+      });
+
+      btnCloseError.addEventListener('click', () => {
+        modalError.classList.add('hidden');
+      });
+
+      btnTryAgain.addEventListener('click', () => {
+        modalError.classList.add('hidden');
+        chkSimulateError.checked = false;
+        Store.setSimulateError(false);
+        btnBuyCredits.click();
+      });
+
+      // Keyboard Esc to close modals
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (!modalSuccess.classList.contains('hidden')) {
+            modalSuccess.classList.add('hidden');
+            window.location.href = 'credit-detail.html';
+          }
+          if (!modalError.classList.contains('hidden')) {
+            modalError.classList.add('hidden');
+          }
+        }
+      });
+
+      // Initial render
+      updateSupplyDisplays();
+      updateWalletUI();
+      validateAndRefreshPricing();
+    });
+  </script>
+</body>
+</html>

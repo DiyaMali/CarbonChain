@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Transaction History | CarbonChain</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2314532d'><path d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z'/><path d='M12 6a6 6 0 0 0-6 6c0 2.5 1.5 4.5 4 5.5'/></svg>"/>
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- Tailwind CSS CDN with plugins -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+  <style data-purpose="custom-shadows">
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-card-shadow {
+      box-shadow: 0 4px 20px -2px rgba(20, 83, 45, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+    .floating-card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+    @keyframes highlight-fade {
+      0% { background-color: rgba(220, 252, 231, 0.9); }
+      70% { background-color: rgba(220, 252, 231, 0.5); }
+      100% { background-color: transparent; }
+    }
+    .row-highlight {
+      animation: highlight-fade 3.5s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-[#eaf1ec] min-h-screen p-4 md:p-8 text-slate-800">
+
+  <!-- Screen Wrapper -->
+  <div class="max-w-7xl mx-auto flex flex-col gap-4">
+
+    <!-- Header Section -->
+    <header class="flex items-center justify-between" data-purpose="screen-title">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-brand-600"></span>
+        <h1 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">
+          Transaction History
+        </h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="credit-detail.html" class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0e4425] hover:bg-[#125830] text-white text-xs font-semibold rounded-xl shadow-sm transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>Buy Credits</span>
+        </a>
+        <button type="button" id="btn-reset-demo" class="text-xs text-slate-500 hover:text-slate-800 border border-slate-300 hover:bg-white px-3 py-1.5 rounded-lg transition" title="Reset all transactions to default state">
+          Reset Demo
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container Frame -->
+    <main class="w-full bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden flex flex-col md:flex-row min-h-[680px]" data-purpose="dashboard-frame">
+
+      <!-- Navigation Sidebar -->
+      <aside class="w-full md:w-60 bg-[#0e4425] text-white flex-shrink-0 flex flex-col justify-between py-6 px-4" data-purpose="sidebar-navigation">
+        <div>
+          <!-- Brand Logo Header -->
+          <a href="credit-detail.html" class="flex items-center gap-2.5 px-3 mb-8 group">
+            <div class="w-7 h-7 rounded-full border-2 border-emerald-400 flex items-center justify-center text-emerald-300 group-hover:scale-105 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z"></path>
+                <path d="M12 6a6 6 0 0 0-6 6c0 2.5 1.5 4.5 4 5.5"></path>
+              </svg>
+            </div>
+            <span class="font-bold text-base tracking-wide text-white">CarbonChain</span>
+          </a>
+
+          <!-- Navigation Menu -->
+          <nav aria-label="Sidebar Menu" class="space-y-1.5">
+            <!-- Dashboard -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="credit-detail.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <rect height="9" rx="1" width="7" x="3" y="3"></rect>
+                <rect height="5" rx="1" width="7" x="14" y="3"></rect>
+                <rect height="9" rx="1" width="7" x="14" y="12"></rect>
+                <rect height="5" rx="1" width="7" x="3" y="16"></rect>
+              </svg>
+              Dashboard
+            </a>
+
+            <!-- Marketplace -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="credit-detail.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"></path>
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"></path>
+                <path d="M2 7h20"></path>
+              </svg>
+              Marketplace
+            </a>
+
+            <!-- My Projects -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="credit-detail.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+              </svg>
+              My Projects
+            </a>
+
+            <!-- My Credits -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="m10 15 5-3-5-3v6Z"></path>
+              </svg>
+              My Credits
+            </a>
+
+            <!-- Transactions (Active) -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-600/35 text-white font-medium text-sm border border-emerald-500/20 shadow-inner" href="transaction-history.html">
+              <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Transactions
+            </a>
+
+            <!-- Retirements -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="transaction-history.html">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+              </svg>
+              Retirements
+            </a>
+
+            <!-- Profile -->
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100/75 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium" href="#">
+              <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Profile
+            </a>
+          </nav>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="pt-4 border-t border-emerald-800/60 text-xs text-emerald-200/80 px-2 flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Polygon POS
+          </span>
+          <span class="font-mono text-[11px] text-emerald-300">0x71...338</span>
+        </div>
+      </aside>
+
+      <!-- Content Area -->
+      <section class="flex-1 p-6 md:p-8 flex flex-col gap-8 bg-[#fafbfa] overflow-y-auto" data-purpose="history-content-area">
+
+        <!-- SECTION 1: Purchases / Transactions Table -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 md:p-6 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-gray-900 tracking-tight">Recent Purchases &amp; Transactions</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Purchased credits held in your wallet (separate from retired credits)</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="purchased-summary-badge" class="px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg">
+                2 Purchases
+              </span>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs" id="tx-table">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-400 uppercase tracking-wider font-semibold text-[10px]">
+                  <th class="py-2.5 px-3">Date</th>
+                  <th class="py-2.5 px-3">Project</th>
+                  <th class="py-2.5 px-3">Quantity</th>
+                  <th class="py-2.5 px-3">Amount Paid</th>
+                  <th class="py-2.5 px-3">Status</th>
+                  <th class="py-2.5 px-3 text-right">Tx Hash</th>
+                </tr>
+              </thead>
+              <tbody id="tx-table-body" class="divide-y divide-slate-100 font-medium">
+                <!-- Dynamically populated from store.js -->
+              </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div id="tx-empty-state" class="hidden py-8 flex flex-col items-center justify-center text-center">
+              <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-slate-700">No transactions recorded yet</p>
+              <p class="text-xs text-slate-400 mt-1">Purchased credits will appear here with Polygon verification.</p>
+              <a href="credit-detail.html" class="mt-4 px-4 py-2 bg-[#0e4425] text-white text-xs font-semibold rounded-xl">
+                Browse Marketplace
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: Environmental Impact Card (Original Screen 14 preserved) -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 md:p-6 shadow-sm flex flex-col gap-4">
+          <h2 class="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+            My Environmental Impact
+          </h2>
+
+          <!-- Content Grid: Two columns (Stats & Retired breakdown VS Visual banner) -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
+            
+            <!-- Left Column: Metrics & List Breakdown -->
+            <div class="md:col-span-7 flex flex-col justify-between" data-purpose="impact-metrics-column">
+              <!-- Top Stat: Total Credits Retired -->
+              <div class="mb-6">
+                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                  Total Credits Retired
+                </span>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-3xl sm:text-4xl font-extrabold text-brand-600 tracking-tight">350</span>
+                  <span class="text-base sm:text-lg font-bold text-brand-700 tracking-normal">tCO<sub>2</sub>e</span>
+                </div>
+              </div>
+
+              <!-- Section Label: Retired Credits Breakdown -->
+              <div class="mt-2">
+                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
+                  Retired Credits
+                </h3>
+
+                <!-- Projects Breakdown List -->
+                <ul class="divide-y divide-gray-100" data-purpose="retired-credits-list">
+                  <!-- Row 1: Solar Project -->
+                  <li class="py-3.5 flex items-center justify-between group transition-colors hover:bg-gray-50/50 rounded-lg px-1">
+                    <div class="flex items-center space-x-3.5">
+                      <div class="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="4" stroke="currentColor"></circle>
+                          <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m14.14-14.14l-1.41 1.41" stroke-linecap="round"></path>
+                        </svg>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-800">Solar Project</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-sm font-medium text-gray-600">100 tCO<sub>2</sub>e</span>
+                    </div>
+                  </li>
+
+                  <!-- Row 2: Wind Project -->
+                  <li class="py-3.5 flex items-center justify-between group transition-colors hover:bg-gray-50/50 rounded-lg px-1">
+                    <div class="flex items-center space-x-3.5">
+                      <div class="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                          <path d="M12 21V11M12 11a3 3 0 10-2.83-4M12 11a3 3 0 112.83-4M12 11c-2.5 0-5 2-5 4.5s2 4.5 4.5 4.5M12 11c2.5 0 5 2 5 4.5s-2 4.5-4.5 4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-800">Wind Project</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-sm font-medium text-gray-600">150 tCO<sub>2</sub>e</span>
+                    </div>
+                  </li>
+
+                  <!-- Row 3: Forest Project -->
+                  <li class="py-3.5 flex items-center justify-between group transition-colors hover:bg-gray-50/50 rounded-lg px-1">
+                    <div class="flex items-center space-x-3.5">
+                      <div class="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                          <path d="M12 21v-4m0-4v-1a5 5 0 00-5-5h-.5a4.5 4.5 0 01-1.5-.26A4 4 0 013 7a4 4 0 016.3-3.26A5 5 0 0117 7a4 4 0 01-.5 7.95H16a5 5 0 00-4 4z" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-800">Forest Project</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-sm font-medium text-gray-600">100 tCO<sub>2</sub>e</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Right Column: Visual Nature Banner Card -->
+            <div class="md:col-span-5 flex flex-col" data-purpose="nature-visual-showcase">
+              <div class="relative w-full h-full min-h-[220px] sm:min-h-[260px] rounded-xl overflow-hidden border border-emerald-900/10">
+                <img alt="Majestic mountains and lush green pine forest landscape" class="absolute inset-0 w-full h-full object-cover object-center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCgIB1HA0PBXmB6iCGnQ8f8AZE1xtXaGRixB8s7-GfyTM6Xf4RRAtXgQxoR5S21sQPDjjTBKfxvYPM9kCaF1ayC6fvpVvIgrXcYfcQP-MJkHPAXhbk4t5ELASdc3CZWAgyBfJj1QZLCGQV9aQO7rSd0j917UBPVfqR6b-BDUge7mx7yeBZm58yfUkgVqPy1swQayAo7P45BStLpX3P-Fmz08jTxZxeSVFyxyTO0eMGwpUBCMqRxr30"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+                <div class="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 bg-white/95 backdrop-blur-md rounded-xl p-3.5 sm:p-4 floating-card-shadow border border-white/60 flex items-center justify-between" data-purpose="cta-floating-badge">
+                  <div class="pr-2">
+                    <p class="text-xs sm:text-sm font-bold text-brand-800 leading-snug">
+                      Together for a<br/>cleaner planet
+                    </p>
+                  </div>
+                  <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3 4.42 0 8.24-2.8 9.5-7 1.25-4.17-.5-7-1.5-8.5C15.4 3.75 14.5 3 13 3c-5.5 0-9 4.5-9 9 0 .73.1 1.44.28 2.12C5.9 10 10.4 8.5 17 8z"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="store.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const Store = window.CarbonChainStore;
+      const state = Store.getState();
+      const tbody = document.getElementById('tx-table-body');
+      const emptyState = document.getElementById('tx-empty-state');
+      const summaryBadge = document.getElementById('purchased-summary-badge');
+      const btnReset = document.getElementById('btn-reset-demo');
+
+      function renderTransactions() {
+        const transactions = state.transactions || [];
+        summaryBadge.textContent = `${transactions.length} Purchase${transactions.length === 1 ? '' : 's'}`;
+
+        if (transactions.length === 0) {
+          tbody.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+        tbody.innerHTML = transactions.map((tx, idx) => {
+          const isHighlight = tx.isNew;
+          const highlightClass = isHighlight ? 'row-highlight bg-emerald-50/70 border-l-4 border-l-emerald-600' : 'hover:bg-slate-50/70';
+          const newBadge = isHighlight ? '<span class="ml-1.5 inline-block text-[10px] uppercase font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-1.5 py-0.2 rounded">New</span>' : '';
+
+          return `
+            <tr class="transition-colors ${highlightClass}">
+              <td class="py-3 px-3 text-slate-500 whitespace-nowrap">
+                ${tx.date}
+                ${newBadge}
+              </td>
+              <td class="py-3 px-3 font-semibold text-slate-900">
+                ${tx.project}
+                <span class="block text-[11px] font-mono text-slate-400">${tx.tokenId || '#1042'}</span>
+              </td>
+              <td class="py-3 px-3 whitespace-nowrap font-bold text-emerald-800">
+                ${tx.quantity.toLocaleString('en-IN')} tCO₂e
+              </td>
+              <td class="py-3 px-3 whitespace-nowrap font-semibold text-slate-900">
+                ${Store.formatINR(tx.amountPaid)}
+                <span class="block text-[10px] text-slate-400 font-normal">incl. 2% fee</span>
+              </td>
+              <td class="py-3 px-3 whitespace-nowrap">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  ${tx.status || 'Confirmed'}
+                </span>
+              </td>
+              <td class="py-3 px-3 whitespace-nowrap text-right font-mono">
+                <a href="https://polygonscan.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline" title="${tx.txHash}">
+                  ${tx.shortTxHash || Store.shortenHash(tx.txHash)}
+                </a>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Clear the "isNew" flag in localStorage so it only animates on first view
+        Store.markTransactionsViewed();
+      }
+
+      btnReset.addEventListener('click', () => {
+        if (confirm('Reset demo transactions and supply to default?')) {
+          Store.resetToDefaults();
+          window.location.reload();
+        }
+      });
+
+      renderTransactions();
+    });
+  </script>
+</body>
+</html>
