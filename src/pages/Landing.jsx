@@ -92,7 +92,7 @@ export default function Landing() {
           {/* Main headline */}
           <h1
             className="animate-fade-rise max-w-6xl text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-normal text-[#0F2A1D]"
-            style={{ fontFamily: "var(--font-display)", lineHeight: 0.95, letterSpacing: "-2px" }}
+            style={{ fontFamily: "var(--font-display)", lineHeight: 1, letterSpacing: "0.08em" }}
           >
             CarbonChain
           </h1>
