@@ -24,6 +24,7 @@ import {
   ClipboardList,
   ReceiptText,
 } from "lucide-react";
+import EcoIcon from "./EcoIcon";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
 import { shortenAddress } from "../utils/walletUtils";
@@ -163,13 +164,13 @@ export default function EnterpriseLayout({ children }) {
               <>
                 <SidebarNavItem
                   to="/marketplace"
-                  icon={<Store className="w-4 h-4" />}
+                  icon={<EcoIcon name="trade" size="xs" />}
                   label="Marketplace"
                   currentPath={location.pathname}
                 />
                 <SidebarNavItem
                   to="/login"
-                  icon={<User className="w-4 h-4" />}
+                  icon={<EcoIcon name="user" size="xs" />}
                   label="Sign In"
                   currentPath={location.pathname}
                 />
@@ -179,7 +180,7 @@ export default function EnterpriseLayout({ children }) {
               <>
                 <SidebarNavItem
                   to="/verifier/queue"
-                  icon={<ClipboardList className="w-4 h-4" />}
+                  icon={<EcoIcon name="checklist" size="xs" />}
                   label="Review Queue"
                   currentPath={location.pathname}
                   matchPrefix="/verifier/queue"
@@ -187,25 +188,25 @@ export default function EnterpriseLayout({ children }) {
                 />
                 <SidebarNavItem
                   to="/verifier/retirements"
-                  icon={<Leaf className="w-4 h-4" />}
+                  icon={<EcoIcon name="leaf" size="xs" />}
                   label="Retirement Requests"
                   currentPath={location.pathname}
                 />
                 <SidebarNavItem
                   to="/verifier/history"
-                  icon={<History className="w-4 h-4" />}
+                  icon={<EcoIcon name="chart" size="xs" />}
                   label="Review History"
                   currentPath={location.pathname}
                 />
                 <SidebarNavItem
                   to="/verifier/ledger"
-                  icon={<Database className="w-4 h-4" />}
+                  icon={<EcoIcon name="shieldCheck" size="xs" />}
                   label="Ledger"
                   currentPath={location.pathname}
                 />
                 <SidebarNavItem
                   to="/notifications"
-                  icon={<Bell className="w-4 h-4" />}
+                  icon={<EcoIcon name="lightbulb" size="xs" />}
                   label="Notifications"
                   currentPath={location.pathname}
                 />
@@ -215,7 +216,7 @@ export default function EnterpriseLayout({ children }) {
               <>
                 <SidebarNavItem
                   to="/dashboard"
-                  icon={<LayoutDashboard className="w-4 h-4" />}
+                  icon={<EcoIcon name="chart" size="xs" />}
                   label="Dashboard"
                   currentPath={location.pathname}
                 />
@@ -223,19 +224,19 @@ export default function EnterpriseLayout({ children }) {
                   <>
                     <SidebarNavItem
                       to="/submit"
-                      icon={<SendHorizonal className="w-4 h-4" />}
+                      icon={<EcoIcon name="checklist" size="xs" />}
                       label="Submit Project"
                       currentPath={location.pathname}
                     />
                     <SidebarNavItem
                       to="/my-projects"
-                      icon={<FolderKanban className="w-4 h-4" />}
+                      icon={<EcoIcon name="sprout" size="xs" />}
                       label="My Projects"
                       currentPath={location.pathname}
                     />
                     <SidebarNavItem
                       to="/transactions?tab=sales"
-                      icon={<ReceiptText className="w-4 h-4" />}
+                      icon={<EcoIcon name="currency" size="xs" />}
                       label="Sales"
                       currentPath={location.pathname + location.search}
                       matchPrefix="/transactions?tab=sales"
@@ -246,19 +247,19 @@ export default function EnterpriseLayout({ children }) {
                   <>
                     <SidebarNavItem
                       to="/marketplace"
-                      icon={<Store className="w-4 h-4" />}
+                      icon={<EcoIcon name="trade" size="xs" />}
                       label="Marketplace"
                       currentPath={location.pathname}
                     />
                     <SidebarNavItem
                       to="/my-credits"
-                      icon={<Coins className="w-4 h-4" />}
+                      icon={<EcoIcon name="leaf" size="xs" />}
                       label="My Credits"
                       currentPath={location.pathname}
                     />
                     <SidebarNavItem
                       to="/impact"
-                      icon={<TrendingUp className="w-4 h-4" />}
+                      icon={<EcoIcon name="globe" size="xs" />}
                       label="Impact"
                       currentPath={location.pathname}
                     />
@@ -266,7 +267,7 @@ export default function EnterpriseLayout({ children }) {
                 )}
                 <SidebarNavItem
                   to="/transactions"
-                  icon={<ArrowLeftRight className="w-4 h-4" />}
+                  icon={<EcoIcon name="trade" size="xs" />}
                   label="Transactions"
                   currentPath={location.pathname + location.search}
                   matchPrefix={location.search.includes("tab=sales") ? null : "/transactions"}
@@ -274,13 +275,13 @@ export default function EnterpriseLayout({ children }) {
                 />
                 <SidebarNavItem
                   to="/notifications"
-                  icon={<Bell className="w-4 h-4" />}
+                  icon={<EcoIcon name="lightbulb" size="xs" />}
                   label="Notifications"
                   currentPath={location.pathname}
                 />
                 <SidebarNavItem
                   to="/profile"
-                  icon={<User className="w-4 h-4" />}
+                  icon={<EcoIcon name="user" size="xs" />}
                   label="Profile"
                   currentPath={location.pathname}
                 />

@@ -17,6 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import EcoIcon from "../components/EcoIcon";
 import { useWallet } from "../context/WalletContext";
 import { useWalletLedgerStats, usePlatformStats } from "../hooks/useLedger";
 import { USE_DEMO_LEDGER } from "../config/contract";
@@ -157,7 +158,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {isSeller && (
           <StatCard
-            icon={<FileText className="w-4 h-4 text-charcoal-subtle" />}
+            icon={<EcoIcon name="checklist" size="xs" />}
             label="Projects Submitted"
             value={loading ? "--" : stats?.submittedProjectsCount ?? 0}
             link="/my-projects"
@@ -165,7 +166,7 @@ export default function Dashboard() {
         )}
         {isBuyer && (
           <StatCard
-            icon={<Layers className="w-4 h-4 text-charcoal-subtle" />}
+            icon={<EcoIcon name="currency" size="xs" />}
             label="Credits Owned"
             value={loading ? "--" : stats?.ownedCreditsCount ?? 0}
             link="/my-credits"
@@ -173,7 +174,7 @@ export default function Dashboard() {
         )}
         {isSeller && (
           <StatCard
-            icon={<ShoppingBag className="w-4 h-4 text-charcoal-subtle" />}
+            icon={<EcoIcon name="trade" size="xs" />}
             label="Active Listings"
             value={loading ? "--" : stats?.listedCreditsCount ?? 0}
             link="/my-projects"
@@ -181,7 +182,7 @@ export default function Dashboard() {
         )}
         {isBuyer && (
           <StatCard
-            icon={<Leaf className="w-4 h-4 text-charcoal-subtle" />}
+            icon={<EcoIcon name="leaf" size="xs" />}
             label="tCO2e Retired"
             value={loading ? "--" : (stats?.retiredTonnes ?? 0).toLocaleString("en-IN")}
             link="/impact"
@@ -194,7 +195,7 @@ export default function Dashboard() {
         {isSeller && (
           <QuickAction
             to="/submit"
-            icon={<FileText className="w-5 h-5 text-forest" />}
+            icon={<EcoIcon name="checklist" size="sm" />}
             title="Submit Project"
             desc="Register a new emission reduction project for VVB review"
           />
@@ -202,7 +203,7 @@ export default function Dashboard() {
         {isBuyer && (
           <QuickAction
             to="/marketplace"
-            icon={<ShoppingBag className="w-5 h-5 text-forest" />}
+            icon={<EcoIcon name="trade" size="sm" />}
             title="Buy Credits"
             desc="Browse listed MCUs and offset your carbon footprint"
           />
@@ -210,7 +211,7 @@ export default function Dashboard() {
         {isBuyer && (
           <QuickAction
             to="/impact"
-            icon={<TrendingUp className="w-5 h-5 text-forest" />}
+            icon={<EcoIcon name="globe" size="sm" />}
             title="Environmental Impact"
             desc="View your total retirements and impact certificates"
           />

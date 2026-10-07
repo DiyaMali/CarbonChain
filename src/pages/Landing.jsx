@@ -18,29 +18,31 @@ import { SDG_NAMES } from "../services/ledgerService";
 import ProjectTypeIcon from "../components/ProjectTypeIcon";
 import HeroVideo from "../components/HeroVideo";
 
+import EcoIcon from "../components/EcoIcon";
+
 const STEPS = [
   {
-    icon: <FileUp className="w-5 h-5 text-forest" />,
+    icon: <EcoIcon name="checklist" size="sm" />,
     label: "Submit",
     desc: "Project Proponent registers project with evidence, photos and calculation factors.",
   },
   {
-    icon: <CheckCircle2 className="w-5 h-5 text-forest" />,
+    icon: <EcoIcon name="shieldCheck" size="sm" />,
     label: "Verify",
     desc: "A verifier reviews the evidence and approves or rejects the project.",
   },
   {
-    icon: <Coins className="w-5 h-5 text-forest" />,
+    icon: <EcoIcon name="currency" size="sm" />,
     label: "Tokenize",
     desc: "Each verified tCO2e is minted as an MCU token with FIFO serial tracking.",
   },
   {
-    icon: <ArrowLeftRight className="w-5 h-5 text-forest" />,
+    icon: <EcoIcon name="trade" size="sm" />,
     label: "Trade",
     desc: "Transactional Organisations browse and buy verified credits with per-tonne pricing.",
   },
   {
-    icon: <Lock className="w-5 h-5 text-forest" />,
+    icon: <EcoIcon name="lock" size="sm" />,
     label: "Retire",
     desc: "Retirement is approved by a verifier after payment is confirmed, then locked permanently.",
   },
@@ -176,7 +178,7 @@ export default function Landing() {
             <div key={step.label} className="clean-card p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-9 h-9 rounded border border-forest/20 bg-forest/5 flex items-center justify-center">
+                  <div className="w-9 h-9 flex items-center justify-center">
                     {step.icon}
                   </div>
                   <span className="text-[10px] font-mono text-charcoal-subtle font-bold">

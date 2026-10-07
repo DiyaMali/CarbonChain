@@ -25,6 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import { computeImpactFactor, SDG_NAMES, getHoldings, getRetirementRequests } from "../services/ledgerService";
 import { CRI_PROJECTS } from "../data/criProjects";
 import ProjectTypeIcon from "../components/ProjectTypeIcon";
+import EcoIcon from "../components/EcoIcon";
 
 // Scientific & heuristic approximations
 const TREES_PER_TONNE = 45; // IPCC FAR 1990 heuristic
@@ -138,7 +139,7 @@ export default function Impact() {
             Refresh Data
           </button>
           <Link to="/marketplace" className="btn-outline text-xs flex items-center gap-1.5">
-            <Leaf className="w-3.5 h-3.5" />
+            <EcoIcon name="leaf" size="xs" />
             Explore Projects
           </Link>
         </div>
@@ -153,8 +154,8 @@ export default function Impact() {
           <div className="text-2xl sm:text-3xl font-bold text-forest">
             {platformTonnes.toLocaleString("en-IN")} <span className="text-sm font-normal text-charcoal-muted">tCO2e</span>
           </div>
-          <div className="text-[11px] text-emerald-700 flex items-center gap-1 mt-1 font-medium">
-            <CheckCircle2 className="w-3.5 h-3.5" /> 100% on-chain burned & locked
+          <div className="text-[11px] text-emerald-700 flex items-center gap-1.5 mt-1 font-medium">
+            <EcoIcon name="shieldCheck" size="xs" /> 100% on-chain burned & locked
           </div>
         </div>
 
@@ -203,7 +204,7 @@ export default function Impact() {
           <div>
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Leaf className="w-5 h-5 text-forest" />
+                <EcoIcon name="leaf" size="xs" />
                 <h2 className="text-base font-bold text-charcoal">
                   My Organisation's Offset Impact
                 </h2>
@@ -217,7 +218,7 @@ export default function Impact() {
 
             {!effectiveWallet ? (
               <div className="py-8 text-center">
-                <ShieldCheck className="w-10 h-10 text-charcoal-subtle mx-auto mb-3" />
+                <EcoIcon name="shieldCheck" size="lg" className="mx-auto mb-3" />
                 <p className="text-xs text-charcoal-muted max-w-sm mx-auto mb-4">
                   Connect your wallet to monitor personal emission offsets and download verified retirement certificates.
                 </p>
@@ -227,7 +228,7 @@ export default function Impact() {
               </div>
             ) : myRetired.length === 0 ? (
               <div className="py-6 text-center bg-cream/30 rounded-lg p-6 border border-gray-100 mb-4">
-                <Award className="w-8 h-8 text-forest mx-auto mb-2 opacity-80" />
+                <EcoIcon name="heart" size="md" className="mx-auto mb-2" />
                 <div className="text-sm font-semibold text-charcoal mb-1">
                   Ready to offset your carbon footprint?
                 </div>
