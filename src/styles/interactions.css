@@ -1,0 +1,197 @@
+/**
+ * CarbonChain Shared Interactions Stylesheet
+ * 
+ * Rules:
+ * - Transitions of 150ms to 200ms ease-out only.
+ * - No cursor-following effects, no scroll animations, no gradients, no emoji, no em dashes.
+ * - Plain hex values and role tokens.
+ * - Hover-only motion wrapped in @media (hover: hover).
+ * - All transitions disabled under @media (prefers-reduced-motion: reduce).
+ * - Full keyboard accessibility (:focus-visible) and touch parity.
+ */
+
+:root {
+  --role-accent: #14452F;
+  --role-accent-rgb: 20, 69, 47;
+  --role-accent-tint: rgba(20, 69, 47, 0.08);
+  --role-accent-border: rgba(20, 69, 47, 0.40);
+  --shadow-soft: 0 6px 16px rgba(20, 32, 26, 0.08);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus-visible rings on interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--role-accent, #14452F) !important;
+  outline-offset: 2px !important;
+}
+
+/* 1. CARDS (hover-card) */
+.hover-card {
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+}
+
+@media (hover: hover) {
+  .hover-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    border-color: var(--role-accent-border, rgba(20, 69, 47, 0.40)) !important;
+  }
+  .hover-card-clickable {
+    cursor: pointer;
+  }
+}
+
+/* 2. TABLE ROWS (hover-row) */
+.hover-row {
+  position: relative;
+  transition: background-color 160ms ease-out, box-shadow 160ms ease-out;
+}
+
+@media (hover: hover) {
+  .hover-row:hover {
+    background-color: #F7FAF8 !important;
+    box-shadow: inset 3px 0 0 0 var(--role-accent, #14452F);
+  }
+}
+
+.hover-row:focus-within {
+  background-color: #F7FAF8;
+  box-shadow: inset 3px 0 0 0 var(--role-accent, #14452F);
+}
+
+/* Monospace IDs and Hash inline copy button */
+.copy-btn-inline {
+  opacity: 0;
+  transition: opacity 160ms ease-out, background-color 160ms ease-out;
+}
+
+.hover-row:hover .copy-btn-inline,
+.hover-row:focus-within .copy-btn-inline,
+.copy-btn-inline:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .copy-btn-inline {
+    opacity: 1 !important;
+  }
+}
+
+/* 3. BUTTONS & LINKS */
+.btn-outline,
+.hover-btn-outline {
+  transition: background-color 160ms ease-out, border-color 160ms ease-out, color 160ms ease-out;
+}
+
+@media (hover: hover) {
+  .btn-outline:hover,
+  .hover-btn-outline:hover {
+    background-color: var(--role-accent-tint, rgba(20, 69, 47, 0.08)) !important;
+  }
+}
+
+.btn-primary,
+.hover-btn-primary {
+  transition: filter 160ms ease-out, background-color 160ms ease-out;
+}
+
+@media (hover: hover) {
+  .btn-primary:hover,
+  .hover-btn-primary:hover {
+    filter: brightness(0.92);
+  }
+}
+
+/* Text links with arrow nudge */
+.hover-link {
+  transition: color 160ms ease-out, text-decoration-color 160ms ease-out;
+}
+
+.arrow-nudge {
+  display: inline-block;
+  transition: transform 160ms ease-out;
+}
+
+@media (hover: hover) {
+  .hover-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .hover-link:hover .arrow-nudge {
+    transform: translateX(2px);
+  }
+}
+
+/* 4. SIDEBAR NAVIGATION (hover-nav) */
+.hover-nav {
+  position: relative;
+  transition: background-color 160ms ease-out, color 160ms ease-out, box-shadow 160ms ease-out;
+}
+
+@media (hover: hover) {
+  .hover-nav:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important;
+    box-shadow: inset 3px 0 0 0 #FFFFFF;
+  }
+}
+
+/* 5. PROJECT CARDS: quick actions & thumbnail zoom */
+.project-card-actions {
+  transition: opacity 160ms ease-out;
+}
+
+@media (hover: hover) {
+  .project-card-actions {
+    opacity: 0;
+  }
+  .hover-card:hover .project-card-actions,
+  .group:hover .project-card-actions {
+    opacity: 1;
+  }
+}
+
+.project-card-actions:focus-within {
+  opacity: 1 !important;
+}
+
+@media (hover: none) {
+  .project-card-actions {
+    opacity: 1 !important;
+  }
+}
+
+.project-thumbnail-img {
+  transition: transform 180ms ease-out;
+}
+
+@media (hover: hover) {
+  .hover-card:hover .project-thumbnail-img,
+  .group:hover .project-thumbnail-img {
+    transform: scale(1.03);
+  }
+}
+
+/* 6. TOOLTIP TRANSITIONS & CLAMPING */
+.ui-tooltip {
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
+  pointer-events: none;
+  z-index: 50;
+  max-width: 240px;
+}

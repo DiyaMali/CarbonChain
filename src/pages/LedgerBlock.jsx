@@ -4,6 +4,7 @@ import { Shield, ChevronLeft, ChevronRight, Database, CheckCircle2, AlertCircle,
 import { getLedgerBlock, getAllLedgerBlocks, verifyChainIntegrity, tamperBlock } from "../services/ledgerService";
 import { downloadLedgerBlockRecord } from "../utils/exportProject";
 import { USE_DEMO_LEDGER } from "../config/contract";
+import PageHeader from "../components/PageHeader";
 
 const ACTION_LABELS = {
   GENESIS: "Ledger Genesis",
@@ -20,7 +21,8 @@ const ACTION_LABELS = {
 export default function LedgerBlock() {
   const { blockIndex } = useParams();
   const idx = parseInt(blockIndex, 10);
-  const block = getLedgerBlock(idx);
+  const isValidIndex = !isNaN(idx) && idx >= 0;
+  const block = isValidIndex ? getLedgerBlock(idx) : null;
   const allBlocks = getAllLedgerBlocks();
 
   const [verifyResult, setVerifyResult] = useState(null);
@@ -28,8 +30,10 @@ export default function LedgerBlock() {
   const [tampered, setTampered] = useState(false);
 
   React.useEffect(() => {
-    document.title = `Ledger Block #${idx} | CarbonChain`;
-  }, [idx]);
+    document.title = isValidIndex
+      ? `Ledger Block #${idx} | CarbonChain`
+      : "Ledger Block Not Found | CarbonChain";
+  }, [idx, isValidIndex]);
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -39,46 +43,58 @@ export default function LedgerBlock() {
   };
 
   const handleTamper = () => {
+    if (!isValidIndex) return;
     tamperBlock(idx, `TAMPERED_AT_${new Date().toISOString()}`);
     setTampered(true);
     setVerifyResult(null);
   };
 
-  if (!block) {
+  if (!isValidIndex || !block) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <Database className="w-10 h-10 text-charcoal-subtle mx-auto mb-4" />
-        <h1 className="text-xl font-semibold text-charcoal mb-2">Block #{idx} not found</h1>
-        <Link to="/" className="btn-text text-sm">Back to home</Link>
+        <h1 className="text-xl font-semibold text-charcoal mb-2">
+          {isValidIndex ? `Block #${idx} not found` : "Block Not Found"}
+        </h1>
+        <p className="text-xs text-charcoal-muted max-w-md mx-auto mb-6">
+          {isValidIndex
+            ? `Block #${idx} does not exist in the hash-chained ledger. Total blocks recorded: ${allBlocks.length}.`
+            : "The requested block index is not a valid number. Please inspect a specific block from the ledger list."}
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          <Link to="/verifier/ledger" className="btn-outline text-xs px-4 py-2">
+            Back to Ledger List
+          </Link>
+          <Link to="/dashboard" className="btn-neutral-outline text-xs px-4 py-2">
+            Dashboard
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-forest block mb-1">
-            CarbonChain Ledger &bull; Block #{block.index}
-          </span>
-          <h1 className="text-2xl font-semibold text-charcoal">
-            {ACTION_LABELS[block.action] || block.action}
-          </h1>
-          <p className="text-sm text-charcoal-muted mt-1">
-            {new Date(block.timestamp).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "medium" })}
-          </p>
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="verifier"
+        eyebrow="BLOCK INSPECTION"
+        title={`Block #${block.index}: ${ACTION_LABELS[block.action] || block.action}`}
+        subtitle={new Date(block.timestamp).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "medium" })}
+        action={{ label: "Back to Ledger", to: "/verifier/ledger" }}
+      />
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        <div className="mb-6 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => downloadLedgerBlockRecord(block)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 border rounded text-xs font-semibold transition-colors cursor-pointer"
+            style={{ borderColor: "#1F3A5F", color: "#1F3A5F", backgroundColor: "#FFFFFF" }}
+            title={`Download Ledger Block #${block.index} record (.json) to your computer`}
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download Ledger Record
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => downloadLedgerBlockRecord(block)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-forest text-forest hover:bg-forest/5 rounded text-xs font-semibold transition-colors self-start sm:self-center cursor-pointer"
-          title={`Download Ledger Block #${block.index} record (.json) to your computer`}
-        >
-          <Download className="w-3.5 h-3.5" />
-          Download Ledger Record
-        </button>
-      </div>
 
       {tampered && (
         <div className="mb-4 p-3 rounded bg-amber-50 border border-amber-200 text-amber-800 text-xs">
@@ -154,6 +170,7 @@ export default function LedgerBlock() {
 
       <div className="mt-8 text-[11px] text-charcoal-subtle text-center">
         CarbonChain Ledger: SHA-256 hash-chained, tamper-evident records
+      </div>
       </div>
     </div>
   );

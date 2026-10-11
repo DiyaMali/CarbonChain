@@ -34,6 +34,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Transactions from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
+import About from "./pages/About";
 import { ToastProvider } from "./context/ToastContext";
 
 export default function App() {
@@ -167,16 +168,19 @@ const ENTERPRISE_PREFIXES = [
 function AppRoutes() {
   const location = useLocation();
   const path = location.pathname;
+  const { user } = useAuth();
 
-  const isEnterprise = ENTERPRISE_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(prefix)
-  );
+  const isEnterprise =
+    ENTERPRISE_PREFIXES.some(
+      (prefix) => path === prefix || path.startsWith(prefix)
+    ) || (Boolean(user) && (path === "/about" || path.startsWith("/about")));
 
   if (isEnterprise) {
     return (
       <EnterpriseLayout>
         <Routes>
           {/* ── Public / shared routes in EnterpriseLayout ── */}
+          <Route path="/about" element={<About />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/credit/:tokenId" element={<CreditDetail />} />
           <Route path="/projects/:slug" element={<ProjectDetail />} />
@@ -186,6 +190,7 @@ function AppRoutes() {
           {/* ── Authenticated shared routes ── */}
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/transactions" element={<RequireAuth><Transactions /></RequireAuth>} />
+          <Route path="/sales" element={<Navigate to="/transactions" replace />} />
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
           <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
           <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
@@ -231,6 +236,7 @@ function AppRoutes() {
       <main className="flex-1 flex flex-col">
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/connect-wallet" element={<ConnectWallet />} />

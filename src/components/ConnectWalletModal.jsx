@@ -80,39 +80,19 @@ export default function ConnectWalletModal() {
   // Select a wallet provider from the list
   const handleSelectWallet = async (walletKey) => {
     setCancelMessage("");
-    if (walletKey === "other") {
-      setSelectedWallet({ key: "other", name: "Other Wallet", monogram: "O" });
-      setView("other");
+    if (walletKey === "demo") {
+      const walletConfig = { key: "demo", name: "Simulated Demo Wallet", monogram: "D" };
+      setSelectedWallet(walletConfig);
+      setView("connecting");
+      setTimeout(() => {
+        finalizeConnection(walletConfig);
+      }, 700);
       return;
     }
 
-    if (walletKey === "walletconnect") {
-      setSelectedWallet({ key: "walletconnect", name: "WalletConnect", monogram: "W" });
-      setView("qr");
-      return;
-    }
-
-    // MetaMask or Coinbase Wallet
-    const walletConfig =
-      walletKey === "metamask"
-        ? { key: "metamask", name: "MetaMask", monogram: "M" }
-        : { key: "coinbase", name: "Coinbase Wallet", monogram: "C" };
-
+    // MetaMask
+    const walletConfig = { key: "metamask", name: "MetaMask", monogram: "M" };
     setSelectedWallet(walletConfig);
-
-    if (USE_REAL_WALLET && walletKey === "metamask") {
-      // TODO: Real wallet path for MetaMask on-chain connection
-      // try {
-      //   const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      //   if (accounts && accounts[0]) {
-      //     finalizeConnection(walletConfig, accounts[0]);
-      //   }
-      // } catch (err) {
-      //   setCancelMessage("Connection rejected by MetaMask.");
-      //   setView("list");
-      // }
-      // return;
-    }
 
     // Simulated connection spinner (~1.2s)
     setView("connecting");
@@ -147,7 +127,9 @@ export default function ConnectWalletModal() {
     connectWalletSession(sessionData);
     setConnectedAddress(finalAddress);
     setView("success");
-    toast.success(`Wallet connected: ${shortenAddress(finalAddress)}`);
+    if (typeof toast?.success === "function") {
+      toast.success(`Wallet connected: ${shortenAddress(finalAddress)}`);
+    }
 
     // Show temporary toast
     setShowToast(true);
@@ -261,13 +243,13 @@ export default function ConnectWalletModal() {
               </div>
             )}
 
-            {/* Choose-a-wallet list styled like payment method selector */}
+            {/* Choose-a-wallet list */}
             <div className="space-y-2.5 my-3">
-              {/* MetaMask - Pre-highlighted */}
+              {/* MetaMask */}
               <button
                 type="button"
                 onClick={() => handleSelectWallet("metamask")}
-                className="w-full text-left p-3 rounded-lg border-2 border-[#14532D] bg-[#F7F9F6] hover:bg-[#EFF3ED] transition-all flex items-center justify-between group cursor-pointer"
+                className="w-full text-left p-3 rounded-lg border border-stone-200 hover:border-[#14532D]/60 hover:bg-stone-50 transition-all flex items-center justify-between group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-md bg-[#14532D] text-white flex items-center justify-center font-bold text-sm shadow-xs">
@@ -277,74 +259,43 @@ export default function ConnectWalletModal() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-[#0F2A1D]">MetaMask</span>
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#14532D]/10 text-[#14532D] uppercase tracking-wide">
-                        Recommended
+                        Browser Wallet
                       </span>
                     </div>
-                    <div className="text-xs text-stone-600 mt-0.5">Popular browser extension and mobile wallet</div>
+                    <div className="text-xs text-stone-600 mt-0.5">Connect with MetaMask extension or mobile app</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
+              {/* Simulated Demo Wallet */}
+              <button
+                type="button"
+                onClick={() => handleSelectWallet("demo")}
+                className="w-full text-left p-3 rounded-lg border-2 border-[#14532D] bg-[#F7F9F6] hover:bg-[#EFF3ED] transition-all flex items-center justify-between group cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-md bg-[#14532D] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                    D
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-[#0F2A1D]">Simulated Demo Wallet</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#14532D]/10 text-[#14532D] uppercase tracking-wide">
+                        Instant Connect
+                      </span>
+                    </div>
+                    <div className="text-xs text-stone-600 mt-0.5">Pre-configured test wallet for sandbox testing</div>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#14532D] group-hover:translate-x-0.5 transition-transform" />
-              </button>
-
-              {/* WalletConnect */}
-              <button
-                type="button"
-                onClick={() => handleSelectWallet("walletconnect")}
-                className="w-full text-left p-3 rounded-lg border border-stone-200 hover:border-[#14532D]/60 hover:bg-stone-50 transition-all flex items-center justify-between group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-md bg-stone-100 border border-stone-200 text-[#0F2A1D] flex items-center justify-center font-bold text-sm">
-                    W
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-stone-900">WalletConnect</div>
-                    <div className="text-xs text-stone-500 mt-0.5">Scan with a mobile wallet</div>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-
-              {/* Coinbase Wallet */}
-              <button
-                type="button"
-                onClick={() => handleSelectWallet("coinbase")}
-                className="w-full text-left p-3 rounded-lg border border-stone-200 hover:border-[#14532D]/60 hover:bg-stone-50 transition-all flex items-center justify-between group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-md bg-stone-100 border border-stone-200 text-[#0F2A1D] flex items-center justify-center font-bold text-sm">
-                    C
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-stone-900">Coinbase Wallet</div>
-                    <div className="text-xs text-stone-500 mt-0.5">Connect with Coinbase</div>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-
-              {/* Other wallet */}
-              <button
-                type="button"
-                onClick={() => handleSelectWallet("other")}
-                className="w-full text-left p-3 rounded-lg border border-stone-200 hover:border-[#14532D]/60 hover:bg-stone-50 transition-all flex items-center justify-between group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-md bg-stone-100 border border-stone-200 text-stone-700 flex items-center justify-center">
-                    <KeyRound className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-stone-900">Other wallet</div>
-                    <div className="text-xs text-stone-500 mt-0.5">Enter a wallet address</div>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
 
             {/* Footer note */}
             <div className="text-center pt-2 pb-1 border-t border-stone-100 mt-4">
               <p className="text-[11px] text-stone-400 font-mono">
-                Network: Polygon. Prototype environment, no real funds are used.
+                Network: Polygon. Test environment, no real funds are used.
               </p>
               <button
                 type="button"
@@ -446,7 +397,7 @@ export default function ConnectWalletModal() {
 
             <div className="p-4 bg-white rounded-xl border border-stone-200 inline-block shadow-xs mb-3">
               <QRCodeSVG
-                value="wc:carbonchain-prototype-session-amoy"
+                value="wc:carbonchain-session-amoy"
                 size={160}
                 level="M"
                 includeMargin={false}

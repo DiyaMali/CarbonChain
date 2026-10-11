@@ -9,6 +9,7 @@ import {
   getRetirementRequest,
   resolveProjectImage
 } from "../services/ledgerService";
+import PageHeader from "../components/PageHeader";
 
 export default function Certificate() {
   const { tokenId } = useParams();
@@ -71,21 +72,29 @@ export default function Certificate() {
   const verifyUrl = `${window.location.origin}/verify/${certificateRef}`;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      {/* Print button */}
-      <div className="flex items-center justify-between mb-6 no-print">
-        <Link to="/my-credits" className="btn-text text-xs">&larr; Back to My Credits</Link>
-        <button
-          onClick={() => window.print()}
-          className="btn-outline-sm flex items-center gap-1.5 cursor-pointer"
-        >
-          <Printer className="w-3.5 h-3.5" />
-          Print / Save as PDF
-        </button>
-      </div>
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="buyer"
+        eyebrow="OFFICIAL REGISTRY RECORD"
+        title="Certificate of Retirement"
+        subtitle="Tamper-evident verification proof for retired carbon credits."
+        action={{ label: "Back to My Credits", to: "/my-credits" }}
+      />
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        {/* Print button */}
+        <div className="flex items-center justify-between mb-6 no-print">
+          <Link to="/my-credits" className="btn-text text-xs">&larr; Back to My Credits</Link>
+          <button
+            onClick={() => window.print()}
+            className="btn-outline-sm flex items-center gap-1.5 cursor-pointer"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Print / Save as PDF
+          </button>
+        </div>
 
-      {/* Official Certificate Box */}
-      <div id="certificate" className="border-2 border-forest/30 rounded-lg p-8 sm:p-12 bg-white print-target shadow-sm relative overflow-hidden">
+        {/* Official Certificate Box */}
+        <div id="certificate" className="border rounded-lg p-8 sm:p-12 print-target shadow-sm relative overflow-hidden" style={{ backgroundColor: "#FFFFFF", borderColor: "#E3E8E5" }}>
         {/* Subtle decorative watermark */}
         <div className="absolute -right-12 -bottom-12 opacity-5 pointer-events-none">
           <Leaf className="w-72 h-72 text-forest" />
@@ -97,11 +106,14 @@ export default function Certificate() {
             <Leaf className="w-6 h-6 text-forest" />
           </div>
           <div className="text-xs font-mono uppercase tracking-widest text-forest font-semibold mb-1">
-            CarbonChain &bull; Official Registry Record
+            CarbonChain &bull; Registry Record
           </div>
-          <h1 className="text-2xl font-semibold text-charcoal mb-0.5">
-            Carbon Credit Retirement Certificate
+          <h1 className="text-2xl font-semibold text-charcoal mb-2">
+            CarbonChain Certificate of Retirement
           </h1>
+          <div className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-xs font-medium mb-3">
+            Not a Carbon Credit Certificate under India's CCTS.
+          </div>
           <p className="text-xs text-charcoal-muted max-w-md mx-auto">
             This certifies the permanent, irreversible retirement and climate declaration of verified carbon credits on the CarbonChain Ledger.
           </p>
@@ -279,6 +291,7 @@ export default function Certificate() {
             Project Details
           </Link>
         )}
+      </div>
       </div>
     </div>
   );

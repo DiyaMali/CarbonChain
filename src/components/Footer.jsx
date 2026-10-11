@@ -46,6 +46,7 @@ export default function Footer() {
               <Link to="/submit" className="block hover:text-charcoal transition-colors">Submit Project</Link>
               <Link to="/my-credits" className="block hover:text-charcoal transition-colors">My Credits</Link>
               <Link to="/impact" className="block hover:text-charcoal transition-colors">Environmental Impact</Link>
+              <Link to="/about" className="block hover:text-charcoal transition-colors">How CarbonChain maps to CCTS</Link>
             </nav>
           </div>
 
@@ -53,9 +54,9 @@ export default function Footer() {
           <div>
             <h3 className="text-xs font-semibold text-charcoal uppercase tracking-wider mb-3">Registry</h3>
             <nav className="space-y-2 text-xs text-charcoal-muted">
-              <a href="https://cri.nccf.in" target="_blank" rel="noreferrer" className="block hover:text-charcoal transition-colors">India Carbon Registry (CRI)</a>
-              <a href="https://nccf.in" target="_blank" rel="noreferrer" className="block hover:text-charcoal transition-colors">NCCF</a>
-              <Link to="/verifier" className="block hover:text-charcoal transition-colors">Verifier Dashboard</Link>
+              <Link to="/about" className="block hover:text-charcoal transition-colors">India Market Mapping</Link>
+              <a href="https://registry.nccf.in/projects" target="_blank" rel="noreferrer" className="block hover:text-charcoal transition-colors">India Carbon Registry (CRI)</a>
+              <Link to="/verifier" className="block hover:text-charcoal transition-colors">Verifier (simulated ACVA role)</Link>
             </nav>
           </div>
 
@@ -108,7 +109,7 @@ export default function Footer() {
                 CarbonChain Ledger: SHA-256 hash-chained, tamper-evident records. Indicative market pricing.
               </div>
               <div>
-                Production design: ERC-721 contract on Polygon. Real CRI registry records show MCUs only.
+                Production design: ERC-721 contract on Polygon Amoy. Real CRI registry records show MCUs only.
               </div>
             </div>
             <div className="whitespace-nowrap">

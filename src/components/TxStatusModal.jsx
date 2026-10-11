@@ -39,22 +39,11 @@ export default function TxStatusModal({ txState, onClose }) {
           <div className="text-center py-4 space-y-3">
             <Loader2 className="w-9 h-9 text-forest animate-spin mx-auto" />
             <h3 className="text-base font-semibold text-charcoal">
-              Confirming on blockchain...
+              Recorded on simulated hash-chained ledger
             </h3>
             <p className="text-xs text-charcoal-muted">
-              Confirming on CarbonChain Network...
+              Appending record to CarbonChain simulated ledger...
             </p>
-            {txHash && (
-              <div className="pt-2">
-                <a
-                  href={explorerUrl || `/ledger/0`}
-                  className="inline-flex items-center gap-1.5 text-xs font-mono text-forest hover:text-forest-hover underline underline-offset-2"
-                >
-                  <span>View transaction record</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            )}
           </div>
         )}
 
@@ -69,17 +58,6 @@ export default function TxStatusModal({ txState, onClose }) {
             <p className="text-xs text-charcoal-muted">
               {message || "The ledger state has been updated on CarbonChain Network."}
             </p>
-            {txHash && (
-              <div className="pt-1">
-                <a
-                  href={explorerUrl || `/ledger/0`}
-                  className="inline-flex items-center gap-1.5 text-xs font-mono text-forest hover:text-forest-hover underline underline-offset-2"
-                >
-                  <span>View transaction record</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            )}
             <div className="pt-3">
               <button onClick={onClose} className="btn-outline w-full py-2 text-xs">
                 Close

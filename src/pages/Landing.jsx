@@ -81,12 +81,12 @@ export default function Landing() {
 
   return (
     <div className="space-y-12 sm:space-y-16 pb-16">
-      {/* ── Cinematic Hero — exact sprout-hero layout with green oval buttons on windmill fans ── */}
+      {/* ── Cinematic Hero: sprout-hero layout with green oval buttons on windmill fans ── */}
       <section className="relative min-h-screen w-full overflow-hidden bg-white">
-        {/* Video background — covers screen */}
+        {/* Video background - covers screen */}
         <HeroVideo />
 
-        {/* Hero content — z-10 */}
+        {/* Hero content - z-10 */}
         <div
           className="relative z-10 flex flex-col items-center justify-center px-6 pb-20 text-center"
           style={{ paddingTop: "calc(5.5rem + 1rem + 1cm)" }}
@@ -110,7 +110,7 @@ export default function Landing() {
           Scroll to explore live ledger data &amp; verified projects ↓
         </div>
 
-        {/* Explore Marketplace — floats above 2nd windmill from left */}
+        {/* Explore Marketplace - floats above 2nd windmill from left */}
         <Link
           to="/marketplace"
           className="animate-fade-rise-delay-2 absolute z-20 rounded-full bg-[#1F5C3F] px-6 py-3 sm:px-8 sm:py-4 text-xs sm:text-sm font-medium text-white shadow-lg backdrop-blur-sm transition-transform hover:scale-[1.04] hover:shadow-xl"
@@ -119,7 +119,7 @@ export default function Landing() {
           Explore Marketplace
         </Link>
 
-        {/* Get Started — floats above windmill fan center */}
+        {/* Get Started - floats above windmill fan center */}
         <Link
           to="/signup"
           className="animate-fade-rise-delay-2 absolute z-20 rounded-full bg-[#1F5C3F] px-6 py-3 sm:px-8 sm:py-4 text-xs sm:text-sm font-medium text-white shadow-lg backdrop-blur-sm transition-transform hover:scale-[1.04] hover:shadow-xl"
@@ -240,14 +240,19 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─── 7. Live Ledger Statistics ─── */}
+      {/* ─── 7. Registry Statistics (sample data) ─── */}
       <section className="w-full max-w-6xl mx-auto px-4 sm:px-6">
         <div className="clean-card p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-gray-100 gap-2">
             <div>
-              <h2 className="text-base font-semibold text-charcoal">CarbonChain Ledger &bull; Live Records</h2>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-forest font-semibold">
+                  Modeled on ISO 14064 and GHG Protocol principles
+                </span>
+              </div>
+              <h2 className="text-base font-semibold text-charcoal">Registry Statistics (sample data)</h2>
               <p className="text-xs text-charcoal-muted mt-0.5">
-                SHA-256 hash-chained, tamper-evident records. Computed from live ledger data.
+                SHA-256 hash-chained, tamper-evident records. Computed from local ledger and project data.
               </p>
             </div>
             <Link
@@ -262,7 +267,7 @@ export default function Landing() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 font-mono">
             {[
               { label: "Projects on ledger", value: statsLoading ? "--" : stats?.projectCount ?? 0 },
-              { label: "MCUs issued", value: statsLoading ? "--" : stats?.creditCount ?? 0 },
+              { label: "MCUs issued", value: statsLoading ? "--" : (stats?.creditCount ?? 0).toLocaleString("en-IN") },
               { label: "tCO2e retired", value: statsLoading ? "--" : (stats?.retiredTonnes ?? 0).toLocaleString("en-IN") },
               { label: "Ledger blocks", value: statsLoading ? "--" : stats?.blockCount ?? 0 },
             ].map(({ label, value }) => (

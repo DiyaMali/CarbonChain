@@ -45,6 +45,11 @@ import {
 } from "../services/ledgerService";
 import { downloadProjectDetailsText, downloadProjectDetailsJson } from "../utils/exportProject";
 import PaymentSheet from "../components/PaymentSheet";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
+import StatusBadge from "../components/StatusBadge";
+import ProjectThumbnail from "../components/ProjectThumbnail";
+import { THEME, STATUS_COLORS } from "../styles/tokens";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
 
@@ -276,7 +281,13 @@ export default function ProjectDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] pb-16">
+    <div className="min-h-screen pb-16" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        eyebrow="PROJECT ASSET"
+        title={project.name}
+        subtitle={`${project.location} • Registry ID: ${project.criId}`}
+        action={{ label: "Back to Projects", to: "/marketplace" }}
+      />
       {/* ─── VERIFICATION AUTHORITY ACTION BAR ────────────────────────────── */}
       {isVerifierRole && (
         <div className="bg-[#003b1b] text-white px-4 sm:px-8 py-3 border-b border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md z-30 relative">
@@ -329,11 +340,15 @@ export default function ProjectDetail() {
       <div className="relative w-full h-[340px] sm:h-[380px] bg-charcoal overflow-hidden">
         {/* Background Image with Overlay */}
         <img
-          src={project.image}
-          alt={project.name}
+          src={project.image || resolveProjectImage(demoProjectState || project)}
+          alt={`${project.name} ground photo`}
+          loading="lazy"
           className="w-full h-full object-cover object-center"
           onError={(e) => {
-            e.currentTarget.style.display = "none";
+            const fb = resolveProjectImage(demoProjectState || project);
+            if (e.currentTarget.src !== fb) {
+              e.currentTarget.src = fb;
+            }
           }}
         />
         {/* Gradient Overlay for high readability */}
@@ -405,53 +420,40 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      {/* ─── 2. FLOATING WHITE STATS CARD: Issued, Sold, Retired, Remaining ────────────────────────────────── */}
+      {/* ─── 2. STATS CARDS: Issued, Sold, Retired, Remaining ────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="relative -mt-12 sm:-mt-14 z-10 bg-white rounded-xl shadow-md border border-gray-100 p-6 sm:p-8 mb-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
-            {/* Stat 1: Issued */}
-            <div className="pt-2 lg:pt-0 lg:px-4 first:pl-0">
-              <div className="text-3xl sm:text-4xl font-bold text-[#00875A] tracking-tight">
-                {formatNumber(issuedQty)}
-              </div>
-              <div className="text-xs text-gray-500 font-medium mt-1">
-                Issued (tCO2e)
-              </div>
-            </div>
-
-            {/* Stat 2: Sold */}
-            <div className="pt-2 lg:pt-0 lg:px-6">
-              <div className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                {formatNumber(soldQty)}
-              </div>
-              <div className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-gray-400" />
-                Sold (tCO2e)
-              </div>
-            </div>
-
-            {/* Stat 3: Retired */}
-            <div className="pt-4 lg:pt-0 lg:px-6">
-              <div className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                {formatNumber(retiredQty)}
-              </div>
-              <div className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
-                <RotateCcw className="w-3.5 h-3.5 text-gray-400" />
-                Retired (tCO2e)
-              </div>
-            </div>
-
-            {/* Stat 4: Remaining */}
-            <div className="pt-4 lg:pt-0 lg:px-6">
-              <div className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                {formatNumber(remainingQty)}
-              </div>
-              <div className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-gray-400" />
-                Remaining (tCO2e)
-              </div>
-            </div>
-          </div>
+        <div className="relative -mt-10 sm:-mt-12 z-10 grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          <StatCard
+            type="credits"
+            title="Issued (tCO2e)"
+            value={formatNumber(issuedQty)}
+            unit="tCO2e"
+            subtext="Verified issuance"
+          />
+          <StatCard
+            type="money"
+            title="Sold (tCO2e)"
+            value={formatNumber(soldQty)}
+            unit="tCO2e"
+            subtext="Settled on ledger"
+            icon={<TrendingUp className="w-4 h-4" />}
+          />
+          <StatCard
+            type="pending"
+            title="Retired (tCO2e)"
+            value={formatNumber(retiredQty)}
+            unit="tCO2e"
+            subtext="Permanently locked"
+            icon={<RotateCcw className="w-4 h-4" />}
+          />
+          <StatCard
+            type="blocks"
+            title="Remaining (tCO2e)"
+            value={formatNumber(remainingQty)}
+            unit="tCO2e"
+            subtext="Available inventory"
+            icon={<Tag className="w-4 h-4" />}
+          />
         </div>
 
         {/* ─── 3. MAIN TWO-COLUMN BODY LAYOUT ──────────────────────────────── */}
@@ -741,22 +743,42 @@ export default function ProjectDetail() {
                 </span>
               </div>
 
-              <div className="rounded-lg overflow-hidden border border-gray-100 bg-gray-50 mb-3">
-                <img
-                  src={project.image}
-                  alt={project.name}
-                  className="w-full h-72 sm:h-96 object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                    const fb = e.currentTarget.nextElementSibling;
-                    if (fb) fb.classList.remove("hidden");
-                  }}
-                />
-                <div className="hidden w-full h-72 flex flex-col items-center justify-center p-6 text-center bg-gray-50">
-                  <Layers className="w-8 h-8 text-gray-400 mb-2" />
-                  <p className="text-xs text-gray-500">Image file: {project.image}</p>
-                </div>
-              </div>
+              {/* Ground photo(s) with sample photo for prototype caption */}
+              {(() => {
+                const photosList =
+                  (demoProjectState?.photos && demoProjectState.photos.length > 0 && demoProjectState.photos) ||
+                  (project?.photos && project.photos.length > 0 && project.photos) ||
+                  null;
+
+                if (photosList && photosList.length > 0) {
+                  return (
+                    <div className="grid grid-cols-1 gap-6 mb-3">
+                      {photosList.map((ph, idx) => (
+                        <ProjectThumbnail
+                          key={idx}
+                          project={demoProjectState || project}
+                          src={ph.url || ph.dataUrl || ph.imageUrl}
+                          alt={`${project.name} ground photo ${idx + 1}`}
+                          variant="detail"
+                          caption="Sample photo for prototype"
+                          className="w-full h-72 sm:h-96 rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="mb-3">
+                    <ProjectThumbnail
+                      project={demoProjectState || project}
+                      variant="detail"
+                      caption="Sample photo for prototype"
+                      className="w-full h-72 sm:h-96 rounded-lg"
+                    />
+                  </div>
+                );
+              })()}
 
               {project.galleryCaptions && project.galleryCaptions.length > 0 && (
                 <div className="space-y-1.5 mt-3 pt-3 border-t border-gray-100">

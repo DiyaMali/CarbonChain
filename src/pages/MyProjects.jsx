@@ -27,6 +27,10 @@ import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
 import ProjectTypeIcon from "../components/ProjectTypeIcon";
 import StatusBadge from "../components/StatusBadge";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
+import ProjectThumbnail from "../components/ProjectThumbnail";
+import { THEME, STATUS_COLORS } from "../styles/tokens";
 import {
   resolveProjectImage,
   updateListingPrice,
@@ -131,13 +135,13 @@ export default function MyProjects() {
       await updateListingPrice(editingPriceProj.credit.id, effectiveWallet, newPrice);
       const msg = `Listing price updated to ₹${Number(newPrice).toLocaleString("en-IN")}/tCO2e.`;
       setActionSuccess(msg);
-      toast?.success(msg);
+      if (typeof toast?.success === "function") toast.success(msg);
       setEditingPriceProj(null);
       refetchCredits();
       refetch();
     } catch (err) {
       setActionError(err.message);
-      toast?.error(err.message);
+      if (typeof toast?.error === "function") toast.error(err.message);
     } finally {
       setActionLoading(false);
     }
@@ -234,7 +238,28 @@ export default function MyProjects() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="seller"
+        eyebrow="SELLER PORTFOLIO"
+        title="My Projects"
+        subtitle="Manage your registered carbon projects, adjust market listings, and track verification decisions."
+        action={{ label: "Submit Project", to: "/submit" }}
+      >
+        <button
+          onClick={() => {
+            refetch();
+            refetchCredits();
+          }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/40 text-xs font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
+          style={{ backgroundColor: "transparent" }}
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          Refresh
+        </button>
+      </PageHeader>
+
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ── Action Success Banner ── */}
       {actionSuccess && (
         <div className="mb-6 p-4 rounded border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs flex items-center justify-between">
@@ -401,27 +426,36 @@ export default function MyProjects() {
         </div>
       )}
 
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-stone-200 gap-4">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-[#14532D] block mb-1">
-            IPP Portfolio
-          </span>
-          <h1 className="text-2xl font-semibold text-stone-900">My Projects</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
-            Manage your registered carbon projects, adjust market listings, and track verification decisions.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => { refetch(); refetchCredits(); }} className="btn-neutral-outline text-xs flex items-center gap-1.5">
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
-          </button>
-          <Link to="/submit" className="btn-outline text-xs flex items-center gap-1.5">
-            <Plus className="w-3.5 h-3.5" />
-            Submit Project
-          </Link>
-        </div>
+      {/* ── Stat Cards ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          type="credits"
+          title="Total Projects"
+          value={myProjects.length}
+          subtext="Registered portfolio"
+          icon={<FileText className="w-4 h-4" />}
+        />
+        <StatCard
+          type="money"
+          title="Active Listed"
+          value={counts.listed || 0}
+          subtext="Available on market"
+          icon={<Tag className="w-4 h-4" />}
+        />
+        <StatCard
+          type="pending"
+          title="Pending Review"
+          value={counts.pending || 0}
+          subtext="Awaiting ACVA decision"
+          icon={<Clock className="w-4 h-4" />}
+        />
+        <StatCard
+          type="rejected"
+          title="Revisions Needed"
+          value={counts.rejected || 0}
+          subtext="Returned submissions"
+          icon={<AlertCircle className="w-4 h-4" />}
+        />
       </div>
 
       {/* ── Tabs Bar per spec §6.2 ── */}
@@ -499,19 +533,30 @@ export default function MyProjects() {
             const retiredQty = salesHistory.reduce((sum, p) => (p.retired ? sum + (p.quantity || 0) : sum), 0);
             const remainingQty = isConcluded ? 0 : Math.max(0, issuedQty - soldQty);
 
+            const statusBorderColor = isPending
+              ? "#8A5A00"
+              : isRejected
+              ? "#A12A2A"
+              : isConcluded
+              ? "#1F3A5F"
+              : isListed
+              ? "#14452F"
+              : "#4A5550";
+
             return (
               <div
                 key={proj.id}
-                className="clean-card p-5 bg-white border border-stone-200 rounded hover:border-stone-300 transition"
+                className="p-5 rounded-[8px] transition shadow-xs"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E3E8E5",
+                  borderLeft: `4px solid ${statusBorderColor}`,
+                }}
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
                   {/* Left: Image & Details */}
                   <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <img
-                      src={resolveProjectImage(proj)}
-                      alt={proj.name}
-                      className="w-24 h-24 object-cover rounded border border-stone-200 flex-shrink-0"
-                    />
+                    <ProjectThumbnail project={proj} variant="list" />
                     <div className="flex-1 min-w-0 space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
@@ -661,6 +706,7 @@ export default function MyProjects() {
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -20,6 +20,8 @@ import { runContractWrite } from "../lib/tx";
 import { shortenAddress } from "../lib/format";
 import { isContractConfigured, EXPLORER } from "../config/contract";
 import TxStatusModal from "../components/TxStatusModal";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
 
 export default function Admin() {
   const walletContext = useWallet();
@@ -255,37 +257,40 @@ export default function Admin() {
   }
 
   return (
-    <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="verifier"
+        eyebrow="SYSTEM ADMINISTRATION"
+        title="Platform Administration"
+        subtitle="Manage verifier credentials and configure marketplace fees on CarbonChain."
+        action={{ label: "Refresh Settings", onClick: () => fetchAdminData() }}
+      />
+      <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <TxStatusModal txState={txState} onClose={() => setTxState({ status: "IDLE" })} />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-gray-200 gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-forest font-semibold">
-              On-Chain Administration
-            </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-300">
-              <ShieldCheck className="w-3 h-3 text-emerald-700" />
-              Default Admin Role
-            </span>
-          </div>
-          <h1 className="text-2xl font-semibold text-charcoal">
-            Platform Administration
-          </h1>
-          <p className="text-xs sm:text-sm text-charcoal-muted mt-1">
-            Manage verifier credentials and configure marketplace fees on Polygon Amoy.
-          </p>
-        </div>
-
-        <button
-          onClick={() => fetchAdminData()}
-          disabled={loading}
-          className="btn-neutral-outline text-xs flex items-center gap-1.5 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh Settings</span>
-        </button>
+      {/* Admin Stat Cards with 3px top borders */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard
+          label="Administrator Role"
+          value="DEFAULT_ADMIN"
+          subtext={account ? shortenAddress(account, 6) : "Deployer Key"}
+          theme="blocks"
+          icon={ShieldCheck}
+        />
+        <StatCard
+          label="Marketplace Fee"
+          value={`${(feeBps / 100).toFixed(2)}%`}
+          subtext={`${feeBps} Basis Points`}
+          theme="money"
+          icon={Percent}
+        />
+        <StatCard
+          label="Fee Treasury"
+          value={feeRecipient ? shortenAddress(feeRecipient, 5) : "Not Configured"}
+          subtext="Protocol revenue wallet"
+          theme="credits"
+          icon={Wallet}
+        />
       </div>
 
       {/* SECTION 1: VERIFIER ROLE MANAGEMENT */}
@@ -450,6 +455,7 @@ export default function Admin() {
             </button>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );

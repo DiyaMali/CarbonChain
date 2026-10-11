@@ -29,7 +29,11 @@ export const HOLDINGS_KEY = "cc_holdings";
 export const RETIREMENTS_KEY = "cc_retirement_requests";
 export const PURCHASES_KEY = "cc_purchases_history";
 export const PLATFORM_FEE_PERCENT = 0.01; // 1% platform fee per spec §4 and §91
-const SEEDED_KEY = "cc_demo_seeded_v33"; // Phase 2: complete spec §17 seed state
+const SEEDED_KEY = "cc_demo_seeded_v37"; // Recent seeded sales dates updated
+
+// Dynamic recent sale dates for seeded holdings and purchases (computed from current date)
+const SOLAR_SALE_DATE = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
+const WIND_SALE_DATE = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
 
 // ─── Wallet addresses (one per built-in account) ─────────────────────────────
 export const DEMO_WALLETS = {
@@ -37,6 +41,7 @@ export const DEMO_WALLETS = {
   seller:   "0xA3f1b8c4d5e6a7b8c9d0e1f2a3b4c5d6e7f8a9b0", // alias
   buyer:    "0xB4c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0", // Ironbridge Steel and Cement Ltd
   verifier: "0xC5d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1", // Diya Mali, Verification Authority
+  cri:      "0xC980000000000000000000000000000000000001", // National Registry Entity
 };
 
 // ─── Seeded accounts (per spec §3.1) ─────────────────────────────────────────
@@ -48,7 +53,7 @@ export const DEMO_ACCOUNTS = [
     password: "Password123",
     organisation: "Meridian Renewables Ltd",
     capabilities: ["sell"],
-    role: "Project Owner",
+    role: "Seller",
     walletAddress: DEMO_WALLETS.ipp,
     isVerifier: false,
     createdAt: "2025-01-10T08:00:00Z",
@@ -88,20 +93,54 @@ export const LEGACY_ID_MAP = {
 
 // ─── Image Resolver Helper ───────────────────────────────────────────────────
 export function resolveProjectImage(proj) {
+  // 1. If project has uploaded photos from seller submission, use the first one
+  if (proj?.photos && Array.isArray(proj.photos) && proj.photos.length > 0) {
+    const first = proj.photos[0];
+    const candidate = first?.url || first?.dataUrl || first?.imageUrl;
+    if (candidate && typeof candidate === "string" && (candidate.startsWith("data:") || candidate.startsWith("/"))) {
+      return candidate;
+    }
+  }
+
+  // 2. Specific matching for the 4 seeded projects:
+  const identifier = (
+    (proj?.name || "") +
+    " " +
+    (proj?.slug || "") +
+    " " +
+    (proj?.id || "") +
+    " " +
+    (proj?.registryId || "")
+  ).toLowerCase();
+
+  if (identifier.includes("solar farm 10mw") || identifier.includes("solar-farm-10mw") || identifier.includes("1042")) {
+    return "/seed/solar-farm.jpg";
+  }
+  if (identifier.includes("wind energy plant") || identifier.includes("wind-energy-plant") || identifier.includes("1018")) {
+    return "/seed/wind-plant.jpg";
+  }
+  if (identifier.includes("agroforestry cluster") || identifier.includes("agroforestry-cluster") || identifier.includes("0977")) {
+    return "/seed/agroforestry.jpg";
+  }
+  if (identifier.includes("biogas capture station") || identifier.includes("biogas-capture-station") || identifier.includes("0852")) {
+    return "/seed/biogas-station.jpg";
+  }
+
   const existing = proj?.imageUrl || proj?.image;
-  // If valid image URL provided and it is not an expired/internal aida link
+  // If valid local image path provided
   if (
     existing &&
     typeof existing === "string" &&
     !existing.includes("aida-public") &&
-    (existing.startsWith("http://") ||
-      existing.startsWith("https://") ||
+    !existing.includes("unsplash.com") &&
+    (existing.startsWith("/seed/") ||
       existing.startsWith("/images/") ||
       existing.startsWith("data:"))
   ) {
     return existing;
   }
 
+  // 3. Fallbacks by sector to local seed and project images (no remote URLs)
   const str = (
     (proj?.name || "") +
     " " +
@@ -112,35 +151,35 @@ export function resolveProjectImage(proj) {
     (proj?.projectType || "")
   ).toLowerCase();
 
-  if (str.includes("solar") || str.includes("barhi") || str.includes("photovoltaic") || str.includes("002") || str.includes("081")) {
-    return "https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1200&q=80";
+  if (str.includes("solar") || str.includes("barhi") || str.includes("photovoltaic")) {
+    return "/seed/solar-farm.jpg";
   }
-  if (str.includes("wind") || str.includes("turbine") || str.includes("kutch") || str.includes("coastal wind") || str.includes("074")) {
-    return "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=1200&q=80";
+  if (str.includes("wind") || str.includes("turbine") || str.includes("kutch") || str.includes("coastal wind")) {
+    return "/seed/wind-plant.jpg";
   }
-  if (str.includes("biogas") || str.includes("methane") || str.includes("bio-cng") || str.includes("bellary") || str.includes("033")) {
-    return "https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?auto=format&fit=crop&w=1200&q=80";
+  if (str.includes("biogas") || str.includes("methane") || str.includes("bio-cng") || str.includes("bellary")) {
+    return "/seed/biogas-station.jpg";
   }
-  if (str.includes("shield") || str.includes("mangrove") || str.includes("004")) {
+  if (str.includes("shield") || str.includes("mangrove")) {
     return "/images/projects/shield-mangrove.jpg";
   }
-  if (str.includes("piplantri") || str.includes("001")) {
+  if (str.includes("piplantri")) {
     return "/images/projects/piplantri.jpg";
   }
-  if (str.includes("reach stacker") || str.includes("erst") || str.includes("003")) {
+  if (str.includes("reach stacker") || str.includes("concor-erst")) {
     return "/images/projects/concor-erst.jpg";
   }
-  if (str.includes("green wings") || str.includes("agroforestry") || str.includes("watershed") || str.includes("005") || str.includes("uttarakhand") || str.includes("059")) {
-    return "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80";
+  if (str.includes("green wings") || str.includes("agroforestry") || str.includes("watershed")) {
+    return "/seed/agroforestry.jpg";
   }
-  if (str.includes("राजसमन्द") || str.includes("rajsamand") || str.includes("006")) {
+  if (str.includes("राजसमन्द") || str.includes("rajsamand")) {
     return "/images/projects/rajsamand.jpg";
   }
-  if (str.includes("hyderabad") || str.includes("metro") || str.includes("007") || str.includes("transport")) {
+  if (str.includes("hyderabad") || str.includes("metro") || str.includes("transport")) {
     return "/images/projects/hyderabad-metro.jpg";
   }
 
-  return "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1200&q=80";
+  return "/seed/solar-farm.jpg";
 }
 
 // ─── Predefined Projects per Spec §17 ─────────────────────────────────────────
@@ -165,8 +204,8 @@ const CRI_SEED_PROJECTS = CRI_PROJECTS.map((cp) => {
       acc[s.number] = { scale: 4, intensity: 4 };
       return acc;
     }, {}),
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     verifierNote: `Verified in CarbonChain. Standard validation protocol aligned with ${cp.methodology}.`,
     verifiedAmount: cp.estCreditsPerYear,
     submittedAt: "2024-03-01T09:00:00Z",
@@ -190,109 +229,78 @@ const CRI_SEED_PROJECTS = CRI_PROJECTS.map((cp) => {
   };
 });
 
-// Meridian Renewables Ltd seeded projects per spec §17:
-// 2 SUBMITTED preset-style projects (in Verifier review queue)
-// 1 REJECTED with reason (allows Edit & resubmit)
-// 1 APPROVED_LISTED (with past sales to Ironbridge)
+// Meridian Renewables Ltd seeded projects (4 projects matching requirements):
+// 1. Solar Farm 10MW, token #1042, Solapur, Maharashtra, Solar, Listed, 1,500 tCO2e issued, 1,000 sold at 1,200 INR per tonne.
+// 2. Wind Energy Plant, token #1018, Kutch, Gujarat, Wind, Listed, 2,000 issued, 1,300 sold at 1,100 INR per tonne.
+// 3. Agroforestry Cluster, token #0977, Wayanad, Kerala, Agroforestry, ACVA review, 800 requested, 0 issued, 0 sold, asking 1,300 INR.
+// 4. Biogas Capture Station, token #0852, Belagavi, Karnataka, Waste, Rejected, 0 issued, 0 sold, verifier note: "Proof document missing GHG audit stamp on page 4."
 const MERIDIAN_SEED_PROJECTS = [
-  // 1. Sinnar Solar Park - Pending Review
+  // 1. Solar Farm 10MW - Listed
   {
-    id: "proj_sinnar",
-    registryId: "CC-NSK-2026-001",
-    slug: "sinnar-solar-park-5mw",
-    name: "Sinnar Solar Park (5 MW)",
-    criStatus: "Planned",
-    status: "Pending",
+    id: "proj_solar_1042",
+    registryId: "CC-SOL-2026-1042",
+    slug: "solar-farm-10mw",
+    name: "Solar Farm 10MW",
+    tokenNumber: "#1042",
+    tokenId: "1042",
+    criStatus: "Listed",
+    status: "Approved",
     projectType: "Solar",
-    location: "Sinnar, Nashik, Maharashtra",
+    location: "Solapur, Maharashtra",
     state: "Maharashtra",
-    estimatedCO2: 6241,
-    verifiedAmount: 0,
-    askingPrice: 450,
-    listQuantity: 6000,
-    description: "5 MW grid-connected ground mounted photovoltaic solar installation in the Sinnar industrial belt of Nashik district. Feeds clean zero-emission renewable energy into the western Maharashtra grid, reducing reliance on thermal power plants.",
-    proofUrl: "https://carbonchain.network/registry/sinnar-solar",
+    estimatedCO2: 1500,
+    verifiedAmount: 1500,
+    askingPrice: 1200,
+    listQuantity: 1500,
+    issued: 1500,
+    sold: 1000,
+    description: "10 MW grid-connected ground mounted photovoltaic solar installation in Solapur, Maharashtra. Displaces regional thermal power generation.",
+    proofUrl: "https://carbonchain.network/registry/solar-farm-10mw",
     sdgs: [13, 7, 9, 12],
     sdgScores: { 13: { scale: 5, intensity: 5 }, 7: { scale: 5, intensity: 4 }, 9: { scale: 4, intensity: 4 }, 12: { scale: 3, intensity: 3 } },
     owner: DEMO_WALLETS.ipp,
     ownerUserId: "usr_meridian",
     developer: "Meridian Renewables Ltd",
-    delegateEntity: "Meridian Clean Power Division",
+    delegateEntity: "Meridian Solar Operations",
     delegateUrl: "https://carbonchain.network",
     validationBody: { name: "VCS Lead Signatory", id: "CRI-VVB-000007" },
     verificationBody: { name: "Diya Mali, Verification Authority", id: "CRI-VVB-000009" },
     scale: "small",
-    methodology: "ACM0002  -  Grid-connected electricity generation from renewable sources",
+    methodology: "ACM0002 - Grid-connected electricity generation from renewable sources",
     classification: "pa",
-    listedDate: "Pending Review",
+    listedDate: "Listed",
     registeredDate: "CarbonChain Network",
     creditingPeriod: "2026 - 2036",
-    submittedAt: "2026-02-12T09:00:00Z",
-    updatedAt: "2026-02-12T09:00:00Z",
-    photoFile: "solar-sinnar.jpg",
-    imageUrl: "/images/presets/solar-sinnar.jpg",
+    submittedAt: "2026-01-15T09:00:00Z",
+    updatedAt: "2026-01-20T12:00:00Z",
+    verifierNote: "Verified 1,500 tCO2e grid-connected photovoltaic generation under ACM0002 protocol.",
+    photoFile: "solar-farm.jpg",
+    imageUrl: "/seed/solar-farm.jpg",
     documents: [
-      { name: "Sinnar_Solar_Grid_Interconnection_Report.pdf", size: 3450000, type: "pdf", hash: "4a28f72c089b3f3b90ec721a361df4b4f53be93a4050aa3e12cbb5507ad98711" },
-      { name: "Sinnar_PV_Generation_Model_P50_P90.xlsx", size: 1240000, type: "xlsx", hash: "7c12eb609fca940b5c1921359aa59f6ad9321ba99d255f056ecadfa54004c3e8" },
+      { name: "Solapur_Solar_Grid_Interconnection_Report.pdf", size: 3450000, type: "pdf", hash: "4a28f72c089b3f3b90ec721a361df4b4f53be93a4050aa3e12cbb5507ad98711" },
     ],
   },
-  // 2. Dindori Grape-Belt Agroforestry - Pending Review
+  // 2. Wind Energy Plant - Listed
   {
-    id: "proj_dindori",
-    registryId: "CC-NSK-2026-002",
-    slug: "dindori-grape-belt-agroforestry",
-    name: "Dindori Grape-Belt Agroforestry Programme",
-    criStatus: "Planned",
-    status: "Pending",
-    projectType: "Agroforestry",
-    location: "Dindori, Nashik, Maharashtra",
-    state: "Maharashtra",
-    estimatedCO2: 1224,
-    verifiedAmount: 0,
-    askingPrice: 1800,
-    listQuantity: 1200,
-    description: "Multi-strata agroforestry and shelterbelt plantation across 200 hectares of smallholder grape vineyards in Dindori taluka. Improves soil organic carbon, enhances microclimate resilience, and sequesters atmospheric CO2.",
-    proofUrl: "https://carbonchain.network/registry/dindori-agroforestry",
-    sdgs: [13, 15, 1, 8],
-    sdgScores: { 13: { scale: 5, intensity: 5 }, 15: { scale: 5, intensity: 5 }, 1: { scale: 4, intensity: 4 }, 8: { scale: 4, intensity: 4 } },
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
-    developer: "Meridian Renewables Ltd",
-    delegateEntity: "Meridian Agroforestry Hub",
-    delegateUrl: "https://carbonchain.network",
-    validationBody: { name: "Verra ARR Lead Auditor", id: "CRI-VVB-000005" },
-    verificationBody: { name: "Diya Mali, Verification Authority", id: "CRI-VVB-000009" },
-    scale: "small",
-    methodology: "AR-ACM0003  -  Afforestation and reforestation of lands including agroforestry",
-    classification: "pa",
-    listedDate: "Pending Review",
-    registeredDate: "CarbonChain Network",
-    creditingPeriod: "2026 - 2046",
-    submittedAt: "2026-02-14T11:30:00Z",
-    updatedAt: "2026-02-14T11:30:00Z",
-    photoFile: "agroforestry-dindori.jpg",
-    imageUrl: "/images/presets/agroforestry-dindori.jpg",
-    documents: [
-      { name: "Dindori_Agroforestry_Biomass_Baseline_2026.pdf", size: 4890000, type: "pdf", hash: "9e1bc8202970bcfeb46ea60eec87cd7a1f5926ec97cb0a623910ef5e96a4b123" },
-    ],
-  },
-  // 3. Satara Ridge Wind Farm - Rejected with reason
-  {
-    id: "proj_satara",
-    registryId: "CC-STR-2026-003",
-    slug: "satara-ridge-wind-farm-phase-1",
-    name: "Satara Ridge Wind Farm Phase 1 (10 MW)",
-    criStatus: "Planned",
-    status: "Rejected",
+    id: "proj_wind_1018",
+    registryId: "CC-WND-2026-1018",
+    slug: "wind-energy-plant",
+    name: "Wind Energy Plant",
+    tokenNumber: "#1018",
+    tokenId: "1018",
+    criStatus: "Listed",
+    status: "Approved",
     projectType: "Wind",
-    location: "Satara district, Maharashtra",
-    state: "Maharashtra",
-    estimatedCO2: 17739,
-    verifiedAmount: 0,
-    askingPrice: 500,
-    listQuantity: 17000,
-    description: "10 MW wind power generation installation sited across the high wind-velocity corridors of Satara Ridge in western Maharashtra. Contributes clean power directly to the regional grid under Clean Development Mechanism protocols.",
-    proofUrl: "https://carbonchain.network/registry/satara-wind",
+    location: "Kutch, Gujarat",
+    state: "Gujarat",
+    estimatedCO2: 2000,
+    verifiedAmount: 2000,
+    askingPrice: 1100,
+    listQuantity: 2000,
+    issued: 2000,
+    sold: 1300,
+    description: "High-efficiency coastal wind power installation across Kutch, Gujarat corridor feeding zero-emission electricity to the western grid.",
+    proofUrl: "https://carbonchain.network/registry/wind-energy-plant",
     sdgs: [13, 7, 9, 12],
     sdgScores: { 13: { scale: 5, intensity: 5 }, 7: { scale: 5, intensity: 5 }, 9: { scale: 4, intensity: 4 }, 12: { scale: 3, intensity: 3 } },
     owner: DEMO_WALLETS.ipp,
@@ -303,58 +311,103 @@ const MERIDIAN_SEED_PROJECTS = [
     validationBody: { name: "Gold Standard VVB", id: "CRI-VVB-000008" },
     verificationBody: { name: "Diya Mali, Verification Authority", id: "CRI-VVB-000009" },
     scale: "large",
-    methodology: "ACM0002  -  Grid-connected electricity generation from renewable sources",
+    methodology: "ACM0002 - Grid-connected electricity generation from renewable sources",
+    classification: "pa",
+    listedDate: "Listed",
+    registeredDate: "CarbonChain Network",
+    creditingPeriod: "2026 - 2036",
+    submittedAt: "2026-01-10T10:00:00Z",
+    updatedAt: "2026-01-18T14:00:00Z",
+    verifierNote: "Verified 2,000 tCO2e wind generation under ACM0002 methodology.",
+    photoFile: "wind-plant.jpg",
+    imageUrl: "/seed/wind-plant.jpg",
+    documents: [],
+  },
+  // 3. Agroforestry Cluster - ACVA review
+  {
+    id: "proj_agro_0977",
+    registryId: "CC-AGR-2026-0977",
+    slug: "agroforestry-cluster",
+    name: "Agroforestry Cluster",
+    tokenNumber: "#0977",
+    tokenId: "0977",
+    criStatus: "Planned",
+    status: "Pending",
+    projectType: "Agroforestry",
+    location: "Wayanad, Kerala",
+    state: "Kerala",
+    estimatedCO2: 800,
+    verifiedAmount: 0,
+    askingPrice: 1300,
+    listQuantity: 800,
+    issued: 0,
+    sold: 0,
+    description: "Multi-strata agroforestry and shelterbelt plantation across smallholder agricultural holdings in Wayanad, Kerala.",
+    proofUrl: "https://carbonchain.network/registry/agroforestry-cluster",
+    sdgs: [13, 15, 1, 8],
+    sdgScores: { 13: { scale: 5, intensity: 5 }, 15: { scale: 5, intensity: 5 }, 1: { scale: 4, intensity: 4 }, 8: { scale: 4, intensity: 4 } },
+    owner: DEMO_WALLETS.ipp,
+    ownerUserId: "usr_meridian",
+    developer: "Meridian Renewables Ltd",
+    delegateEntity: "Meridian Agroforestry Division",
+    delegateUrl: "https://carbonchain.network",
+    validationBody: { name: "Verra ARR Lead Auditor", id: "CRI-VVB-000005" },
+    verificationBody: { name: "Diya Mali, Verification Authority", id: "CRI-VVB-000009" },
+    scale: "small",
+    methodology: "AR-ACM0003 - Afforestation and reforestation of lands including agroforestry",
+    classification: "pa",
+    listedDate: "Pending Review",
+    registeredDate: "CarbonChain Network",
+    creditingPeriod: "2026 - 2046",
+    submittedAt: "2026-02-14T11:30:00Z",
+    updatedAt: "2026-02-14T11:30:00Z",
+    verifierNote: "Auditor verifying baseline tree growth metrics and geo-boundary records.",
+    photoFile: "agroforestry.jpg",
+    imageUrl: "/seed/agroforestry.jpg",
+    documents: [],
+  },
+  // 4. Biogas Capture Station - Rejected
+  {
+    id: "proj_biogas_0852",
+    registryId: "CC-BIO-2026-0852",
+    slug: "biogas-capture-station",
+    name: "Biogas Capture Station",
+    tokenNumber: "#0852",
+    tokenId: "0852",
+    criStatus: "Planned",
+    status: "Rejected",
+    projectType: "Waste",
+    location: "Belagavi, Karnataka",
+    state: "Karnataka",
+    estimatedCO2: 1200,
+    verifiedAmount: 0,
+    askingPrice: 1000,
+    listQuantity: 1200,
+    issued: 0,
+    sold: 0,
+    description: "Agricultural and municipal organic waste anaerobic digestion biogas capture station in Belagavi, Karnataka.",
+    proofUrl: "https://carbonchain.network/registry/biogas-capture-station",
+    sdgs: [13, 7, 9, 12],
+    sdgScores: { 13: { scale: 5, intensity: 5 }, 7: { scale: 5, intensity: 4 }, 9: { scale: 4, intensity: 4 }, 12: { scale: 3, intensity: 3 } },
+    owner: DEMO_WALLETS.ipp,
+    ownerUserId: "usr_meridian",
+    developer: "Meridian Renewables Ltd",
+    delegateEntity: "Meridian Waste to Energy",
+    delegateUrl: "https://carbonchain.network",
+    validationBody: { name: "Gold Standard VVB", id: "CRI-VVB-000008" },
+    verificationBody: { name: "Diya Mali, Verification Authority", id: "CRI-VVB-000009" },
+    scale: "small",
+    methodology: "AMS-III.D - Methane recovery in animal manure and waste management",
     classification: "pa",
     listedDate: "Rejected",
     registeredDate: "CarbonChain Network",
     creditingPeriod: "2026 - 2036",
     submittedAt: "2026-02-01T10:00:00Z",
     updatedAt: "2026-02-05T15:00:00Z",
-    verifierNote: "Quantity not supported. Turbine operational telemetry and grid interconnection logs for Q3/Q4 are missing from submission. Resubmit with metering logs.",
-    photoFile: "wind-satara.jpg",
-    imageUrl: "/images/presets/wind-satara.jpg",
+    verifierNote: "Proof document missing GHG audit stamp on page 4.",
+    photoFile: "biogas-station.jpg",
+    imageUrl: "/seed/biogas-station.jpg",
     documents: [],
-  },
-  // 4. Trimbakeshwar-Igatpuri Hill Afforestation - Approved and Listed
-  {
-    id: "proj_trimbak",
-    registryId: "CC-NSK-2026-004",
-    slug: "trimbakeshwar-igatpuri-hill-afforestation",
-    name: "Trimbakeshwar-Igatpuri Hill Afforestation",
-    criStatus: "Listed",
-    status: "Approved",
-    projectType: "Afforestation",
-    location: "Trimbakeshwar and Igatpuri, Nashik, Maharashtra",
-    state: "Maharashtra",
-    estimatedCO2: 2160,
-    verifiedAmount: 2100,
-    askingPrice: 1600,
-    listQuantity: 2100,
-    description: "Restoration of 500 hectares of degraded hill catchment areas in Trimbakeshwar and Igatpuri talukas of Nashik district. Indigenous broadleaf species planting stabilizes Upper Godavari watershed slopes while capturing carbon.",
-    proofUrl: "https://carbonchain.network/registry/trimbakeshwar-afforestation",
-    sdgs: [13, 15, 6, 8],
-    sdgScores: { 13: { scale: 5, intensity: 5 }, 15: { scale: 5, intensity: 5 }, 6: { scale: 4, intensity: 4 }, 8: { scale: 4, intensity: 4 } },
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
-    developer: "Meridian Renewables Ltd",
-    delegateEntity: "Meridian Watershed Forestry",
-    delegateUrl: "https://carbonchain.network",
-    validationBody: { name: "NCCF Forest Certification Council", id: "CRI-VVB-000004" },
-    verificationBody: { name: "Diya Mali, Verification Authority", id: "CRI-VVB-000009" },
-    scale: "small",
-    methodology: "AR-AMS0003  -  Afforestation and reforestation project activities",
-    classification: "pa",
-    listedDate: "Listed",
-    registeredDate: "CarbonChain Network",
-    creditingPeriod: "2026 - 2056",
-    submittedAt: "2026-02-05T08:00:00Z",
-    updatedAt: "2026-02-10T12:00:00Z",
-    verifierNote: "Ecosystem restoration planting verified in Western Ghats buffer zone under AR-AMS0003 protocol.",
-    photoFile: "afforestation-trimbakeshwar.jpg",
-    imageUrl: "/images/presets/afforestation-trimbakeshwar.jpg",
-    documents: [
-      { name: "Trimbakeshwar_Canopy_Density_Audit_Report.pdf", size: 4120000, type: "pdf", hash: "1d8bf624a87c093c4e3663aef19f9d2cb3788a53167123984e9089f21345dc67" },
-    ],
   },
 ];
 
@@ -389,7 +442,7 @@ export const SDG_NAMES = {
 
 // ─── Seed credits (Approved projects listed on marketplace per spec §17) ──────
 const SEED_CREDITS = [
-  // 1. Piplantri Tree Plantation Project (CRI) - 4,800 tCO2e available (200 purchased by Ironbridge)
+  // 1. Piplantri Tree Plantation Project (CRI) - 4,800 tCO2e available
   {
     id: serialId(1),
     tokenIndex: 1,
@@ -397,8 +450,8 @@ const SEED_CREDITS = [
     amount: 4800,
     price: 6960000,
     pricePerTonne: 1450,
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     listed: true,
     retired: false,
     retiredAt: null,
@@ -416,8 +469,8 @@ const SEED_CREDITS = [
     amount: 250,
     price: 112500,
     pricePerTonne: 450,
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     listed: true,
     retired: false,
     retiredAt: null,
@@ -435,8 +488,8 @@ const SEED_CREDITS = [
     amount: 3000,
     price: 2700000,
     pricePerTonne: 900,
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     listed: true,
     retired: false,
     retiredAt: null,
@@ -454,8 +507,8 @@ const SEED_CREDITS = [
     amount: 5000,
     price: 12000000,
     pricePerTonne: 2400,
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     listed: true,
     retired: false,
     retiredAt: null,
@@ -465,7 +518,7 @@ const SEED_CREDITS = [
     message: "",
     mintedAt: "2024-03-15T08:00:00Z",
   },
-  // 5. Green Wings Agroforestry (CRI) - 15,000 tCO2e available (Ranked first on ties)
+  // 5. Green Wings Agroforestry (CRI) - 15,000 tCO2e available
   {
     id: serialId(5),
     tokenIndex: 5,
@@ -473,8 +526,8 @@ const SEED_CREDITS = [
     amount: 15000,
     price: 27000000,
     pricePerTonne: 1800,
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     listed: true,
     retired: false,
     retiredAt: null,
@@ -492,8 +545,8 @@ const SEED_CREDITS = [
     amount: 3500,
     price: 5600000,
     pricePerTonne: 1600,
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     listed: true,
     retired: false,
     retiredAt: null,
@@ -511,8 +564,8 @@ const SEED_CREDITS = [
     amount: 5000,
     price: 4250000,
     pricePerTonne: 850,
-    owner: DEMO_WALLETS.ipp,
-    ownerUserId: "usr_meridian",
+    owner: DEMO_WALLETS.cri,
+    ownerUserId: "usr_cri",
     listed: true,
     retired: false,
     retiredAt: null,
@@ -522,14 +575,16 @@ const SEED_CREDITS = [
     message: "",
     mintedAt: "2024-03-25T09:00:00Z",
   },
-  // 8. Trimbakeshwar-Igatpuri Hill Afforestation (Meridian) - 1,950 available (150 sold to Ironbridge)
+  // 8. Solar Farm 10MW (Meridian) - Token #1042: 1,500 issued, 1,000 sold, 500 available
   {
-    id: "CCI-TRIMBAK-000001",
-    tokenIndex: 8,
-    projectId: "proj_trimbak",
-    amount: 1950,
-    price: 3120000,
-    pricePerTonne: 1600,
+    id: "CCI-MCU-001042",
+    tokenIndex: 1042,
+    tokenNumber: "#1042",
+    projectId: "proj_solar_1042",
+    amount: 500,
+    totalIssued: 1500,
+    price: 600000,
+    pricePerTonne: 1200,
     owner: DEMO_WALLETS.ipp,
     ownerUserId: "usr_meridian",
     listed: true,
@@ -539,174 +594,127 @@ const SEED_CREDITS = [
     onBehalfOf: "",
     reason: "",
     message: "",
-    mintedAt: "2026-02-10T12:00:00Z",
+    mintedAt: "2026-01-20T12:00:00Z",
   },
-  // 9. Piplantri retired credit token for Ironbridge - 200 tCO2e permanently retired
+  // 9. Wind Energy Plant (Meridian) - Token #1018: 2,000 issued, 1,300 sold, 700 available
   {
-    id: "CCI-PIPL-000001",
-    tokenIndex: 9,
-    projectId: "proj_001",
-    amount: 200,
-    price: 290000,
-    pricePerTonne: 1450,
-    owner: DEMO_WALLETS.buyer,
-    ownerUserId: "usr_ironbridge",
-    listed: false,
-    retired: true,
-    retiredAt: "2026-01-25T11:30:00Z",
-    retireeName: "Ironbridge Steel and Cement Ltd",
-    onBehalfOf: "Ironbridge Steel and Cement Ltd",
-    reason: "Corporate sustainability offset commitment FY24-25",
-    message: "Offsets supporting community agroforestry and tree plantation in Piplantri.",
-    approvalRef: "RET-2026-000108",
-    mintedAt: "2024-04-20T08:00:00Z",
-    purchasedAt: "2026-01-20T11:15:00Z",
+    id: "CCI-MCU-001018",
+    tokenIndex: 1018,
+    tokenNumber: "#1018",
+    projectId: "proj_wind_1018",
+    amount: 700,
+    totalIssued: 2000,
+    price: 770000,
+    pricePerTonne: 1100,
+    owner: DEMO_WALLETS.ipp,
+    ownerUserId: "usr_meridian",
+    listed: true,
+    retired: false,
+    retiredAt: null,
+    retireeName: "",
+    onBehalfOf: "",
+    reason: "",
+    message: "",
+    mintedAt: "2026-01-18T14:00:00Z",
   },
 ];
 
 // ─── Seeded holdings per spec §17 ─────────────────────────────────────────────
 const SEED_HOLDINGS = [
   {
-    id: "hold_trimbak_001",
-    holdingId: "hold_trimbak_001",
-    projectId: "proj_trimbak",
-    projectName: "Trimbakeshwar-Igatpuri Hill Afforestation",
-    projectType: "Afforestation",
-    location: "Trimbakeshwar and Igatpuri, Nashik, Maharashtra",
+    id: "hold_solar_1042",
+    holdingId: "hold_solar_1042",
+    projectId: "proj_solar_1042",
+    projectName: "Solar Farm 10MW",
+    projectType: "Solar",
+    location: "Solapur, Maharashtra",
     buyerUserId: "usr_ironbridge",
     buyerWallet: DEMO_WALLETS.buyer,
-    quantityPurchased: 150,
-    quantityAvailable: 50,
-    quantityPendingRetirement: 100,
+    quantityPurchased: 1000,
+    quantityAvailable: 1000,
+    quantityPendingRetirement: 0,
     quantityRetired: 0,
-    pricePerTonne: 1600,
-    subtotal: 240000,
-    platformFee: 2400,
-    totalPaid: 242400,
-    paymentRef: "PAY-20260215-98214",
-    serialRange: "CCI-TRIMBAK-000001 to CCI-TRIMBAK-000150",
-    purchasedAt: "2026-02-15T10:30:00Z",
+    pricePerTonne: 1200,
+    subtotal: 1200000,
+    platformFee: 12000,
+    totalPaid: 1212000,
+    paymentRef: "PAY-20260210-10420",
+    serialRange: "CCI-SOL-000001 to CCI-SOL-001000",
+    purchasedAt: SOLAR_SALE_DATE,
   },
   {
-    id: "hold_piplantri_001",
-    holdingId: "hold_piplantri_001",
-    projectId: "proj_001",
-    projectName: "Piplantri Tree Plantation Project",
-    projectType: "Forestry & REDD+",
-    location: "Rajsamand District, Rajasthan, India",
+    id: "hold_wind_1018",
+    holdingId: "hold_wind_1018",
+    projectId: "proj_wind_1018",
+    projectName: "Wind Energy Plant",
+    projectType: "Wind",
+    location: "Kutch, Gujarat",
     buyerUserId: "usr_ironbridge",
     buyerWallet: DEMO_WALLETS.buyer,
-    quantityPurchased: 200,
-    quantityAvailable: 0,
+    quantityPurchased: 1300,
+    quantityAvailable: 1300,
     quantityPendingRetirement: 0,
-    quantityRetired: 200,
-    pricePerTonne: 1450,
-    subtotal: 290000,
-    platformFee: 2900,
-    totalPaid: 292900,
-    paymentRef: "PAY-20260120-41052",
-    serialRange: "CCI-PIPL-000001 to CCI-PIPL-000200",
-    purchasedAt: "2026-01-20T11:15:00Z",
+    quantityRetired: 0,
+    pricePerTonne: 1100,
+    subtotal: 1430000,
+    platformFee: 14300,
+    totalPaid: 1444300,
+    paymentRef: "PAY-20260215-10180",
+    serialRange: "CCI-WND-000001 to CCI-WND-001300",
+    purchasedAt: WIND_SALE_DATE,
   },
 ];
 
 // ─── Seeded retirement requests per spec §17 ──────────────────────────────────
-const SEED_RETIREMENT_REQUESTS = [
-  {
-    id: "req_ret_001",
-    holdingId: "hold_trimbak_001",
-    projectId: "proj_trimbak",
-    projectName: "Trimbakeshwar-Igatpuri Hill Afforestation",
-    projectType: "Afforestation",
-    buyerUserId: "usr_ironbridge",
-    buyerWallet: DEMO_WALLETS.buyer,
-    sellerUserId: "usr_meridian",
-    sellerWallet: DEMO_WALLETS.ipp,
-    quantity: 100,
-    serialRange: "CCI-TRIMBAK-000001 to CCI-TRIMBAK-000100",
-    retireeName: "Ironbridge Steel and Cement Ltd",
-    onBehalfOf: "Ironbridge Infrastructure Division",
-    onBehalfOfWallet: DEMO_WALLETS.buyer,
-    reason: "FY25 Scope 1 kiln emissions decarbonization milestone",
-    message: "Retirement towards corporate science-based decarbonization targets.",
-    status: "Requested",
-    requestedAt: "2026-02-20T14:00:00Z",
-  },
-  {
-    id: "req_ret_002",
-    approvalRef: "RET-2026-000108",
-    certificateId: "RET-2026-000108",
-    holdingId: "hold_piplantri_001",
-    projectId: "proj_001",
-    projectName: "Piplantri Tree Plantation Project",
-    projectType: "Forestry & REDD+",
-    buyerUserId: "usr_ironbridge",
-    buyerWallet: DEMO_WALLETS.buyer,
-    sellerUserId: "usr_meridian",
-    sellerWallet: DEMO_WALLETS.ipp,
-    quantity: 200,
-    serialRange: "CCI-PIPL-000001 to CCI-PIPL-000200",
-    retireeName: "Ironbridge Steel and Cement Ltd",
-    onBehalfOf: "Ironbridge Steel and Cement Ltd",
-    onBehalfOfWallet: DEMO_WALLETS.buyer,
-    reason: "Corporate sustainability offset commitment FY24-25",
-    message: "Community agroforestry and ecosystem restoration offset in Piplantri.",
-    status: "Approved",
-    requestedAt: "2026-01-22T09:00:00Z",
-    approvedAt: "2026-01-25T11:30:00Z",
-    verifierUserId: "usr_verifier",
-    verifierWallet: DEMO_WALLETS.verifier,
-    verifierNote: "Payment verified against PAY-20260120-41052. Serial range validated and permanently locked.",
-  },
-];
+const SEED_RETIREMENT_REQUESTS = [];
 
-// ─── Seeded purchases history per spec §17 ───────────────────────────────────
+// ─── Seeded purchases history ───────────────────────────────────
 const SEED_PURCHASES = [
   {
     id: "pur_001",
-    paymentRef: "PAY-20260120-41052",
-    paymentReference: "PAY-20260120-41052",
+    paymentRef: "PAY-20260210-10420",
+    paymentReference: "PAY-20260210-10420",
     buyerUserId: "usr_ironbridge",
     buyerWallet: DEMO_WALLETS.buyer,
     sellerUserId: "usr_meridian",
     sellerWallet: DEMO_WALLETS.ipp,
-    creditId: serialId(1),
-    projectId: "proj_001",
-    projectName: "Piplantri Tree Plantation Project",
-    projectType: "Forestry & REDD+",
-    quantity: 200,
-    amount: 200,
-    pricePerTonne: 1450,
-    pricePerTonnePaid: 1450,
-    subtotal: 290000,
-    platformFee: 2900,
-    totalPaid: 292900,
-    pricePaid: 292900,
-    serialRange: "CCI-PIPL-000001 to CCI-PIPL-000200",
-    purchasedAt: "2026-01-20T11:15:00Z",
+    creditId: "CCI-MCU-001042",
+    projectId: "proj_solar_1042",
+    projectName: "Solar Farm 10MW",
+    projectType: "Solar",
+    quantity: 1000,
+    amount: 1000,
+    pricePerTonne: 1200,
+    pricePerTonnePaid: 1200,
+    subtotal: 1200000,
+    platformFee: 12000,
+    totalPaid: 1212000,
+    pricePaid: 1212000,
+    serialRange: "CCI-SOL-000001 to CCI-SOL-001000",
+    purchasedAt: SOLAR_SALE_DATE,
   },
   {
     id: "pur_002",
-    paymentRef: "PAY-20260215-98214",
-    paymentReference: "PAY-20260215-98214",
+    paymentRef: "PAY-20260215-10180",
+    paymentReference: "PAY-20260215-10180",
     buyerUserId: "usr_ironbridge",
     buyerWallet: DEMO_WALLETS.buyer,
     sellerUserId: "usr_meridian",
     sellerWallet: DEMO_WALLETS.ipp,
-    creditId: "CCI-TRIMBAK-000001",
-    projectId: "proj_trimbak",
-    projectName: "Trimbakeshwar-Igatpuri Hill Afforestation",
-    projectType: "Afforestation",
-    quantity: 150,
-    amount: 150,
-    pricePerTonne: 1600,
-    pricePerTonnePaid: 1600,
-    subtotal: 240000,
-    platformFee: 2400,
-    totalPaid: 242400,
-    pricePaid: 242400,
-    serialRange: "CCI-TRIMBAK-000001 to CCI-TRIMBAK-000150",
-    purchasedAt: "2026-02-15T10:30:00Z",
+    creditId: "CCI-MCU-001018",
+    projectId: "proj_wind_1018",
+    projectName: "Wind Energy Plant",
+    projectType: "Wind",
+    quantity: 1300,
+    amount: 1300,
+    pricePerTonne: 1100,
+    pricePerTonnePaid: 1100,
+    subtotal: 1430000,
+    platformFee: 14300,
+    totalPaid: 1444300,
+    pricePaid: 1444300,
+    serialRange: "CCI-WND-000001 to CCI-WND-001300",
+    purchasedAt: WIND_SALE_DATE,
   },
 ];
 
@@ -996,7 +1004,22 @@ export function saveCredits(credits) {
 export function getHoldings(buyerWallet = null) {
   try {
     const raw = localStorage.getItem(HOLDINGS_KEY);
-    const list = raw ? JSON.parse(raw) : [];
+    let list = raw ? JSON.parse(raw) : [];
+    let updated = false;
+    list = list.map((h) => {
+      if (h.projectId === "proj_solar_1042" && (h.purchasedAt?.startsWith("2026-02-10") || !h.purchasedAt)) {
+        updated = true;
+        return { ...h, purchasedAt: SOLAR_SALE_DATE };
+      }
+      if (h.projectId === "proj_wind_1018" && (h.purchasedAt?.startsWith("2026-02-15") || !h.purchasedAt)) {
+        updated = true;
+        return { ...h, purchasedAt: WIND_SALE_DATE };
+      }
+      return h;
+    });
+    if (updated) {
+      saveHoldings(list);
+    }
     if (!buyerWallet) return list;
     return list.filter((h) => !h.buyerWallet || h.buyerWallet.toLowerCase() === buyerWallet.toLowerCase());
   } catch {
@@ -1063,8 +1086,7 @@ export function saveVerifierHistory(history) {
 // ─── Sales history for sellers ────────────────────────────────────────────────
 export function getSalesHistory(sellerWallet = null) {
   try {
-    const raw = localStorage.getItem(PURCHASES_KEY);
-    const history = raw ? JSON.parse(raw) : [];
+    const history = getPurchasesHistory();
     if (!sellerWallet) return history;
     return history.filter((h) => !h.sellerWallet || h.sellerWallet.toLowerCase() === sellerWallet.toLowerCase());
   } catch {
@@ -1216,7 +1238,7 @@ export async function seedIfNeeded(force = false) {
     localStorage.removeItem("cc_verifier_history");
     localStorage.removeItem("cc_verifier_processed");
     localStorage.removeItem("cc_notifications");
-    for (let i = 1; i <= 32; i++) {
+    for (let i = 1; i <= 36; i++) {
       localStorage.removeItem(`cc_demo_seeded_v${i}`);
     }
 
@@ -1245,16 +1267,34 @@ export async function resetDemoData() {
   localStorage.removeItem("cc_verifier_history");
   localStorage.removeItem("cc_verifier_processed");
   localStorage.removeItem("cc_notifications");
-  for (let i = 1; i <= 33; i++) {
+  for (let i = 1; i <= 37; i++) {
     localStorage.removeItem(`cc_demo_seeded_v${i}`);
   }
   localStorage.removeItem(SEEDED_KEY);
   await seedIfNeeded(true);
 }
 
-// ─── Helper: simulate ledger confirmation delay ───────────────────────────────
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
+// ─── Seed Meridian Seller if Empty ───────────────────────────────────────────
+export function seedMeridianSellerIfEmpty() {
+  const projects = getProjects();
+  const meridianProjects = projects.filter(
+    (p) => p.ownerUserId === "usr_meridian" || p.owner?.toLowerCase() === DEMO_WALLETS.ipp.toLowerCase()
+  );
+  if (!meridianProjects || meridianProjects.length === 0) {
+    const updatedProjects = [...projects, ...MERIDIAN_SEED_PROJECTS];
+    saveProjects(updatedProjects);
+
+    const credits = getCredits();
+    const meridianCredits = SEED_CREDITS.filter((c) => c.ownerUserId === "usr_meridian");
+    saveCredits([...credits, ...meridianCredits]);
+
+    try {
+      const raw = localStorage.getItem(PURCHASES_KEY);
+      const purchases = raw ? JSON.parse(raw) : [];
+      const meridianPurchases = SEED_PURCHASES.filter((p) => p.sellerUserId === "usr_meridian");
+      localStorage.setItem(PURCHASES_KEY, JSON.stringify([...purchases, ...meridianPurchases]));
+    } catch {}
+  }
 }
 
 // ─── PUBLIC API ───────────────────────────────────────────────────────────────
@@ -2116,7 +2156,22 @@ export async function buyCredit(creditId, buyerWallet, buyerUserId, requestedAmo
 export function getPurchasesHistory(buyerWallet) {
   try {
     const raw = localStorage.getItem(PURCHASES_KEY);
-    const history = raw ? JSON.parse(raw) : [];
+    let history = raw ? JSON.parse(raw) : [];
+    let updated = false;
+    history = history.map((h) => {
+      if (h.projectId === "proj_solar_1042" && (h.purchasedAt?.startsWith("2026-02-10") || !h.purchasedAt)) {
+        updated = true;
+        return { ...h, purchasedAt: SOLAR_SALE_DATE };
+      }
+      if (h.projectId === "proj_wind_1018" && (h.purchasedAt?.startsWith("2026-02-15") || !h.purchasedAt)) {
+        updated = true;
+        return { ...h, purchasedAt: WIND_SALE_DATE };
+      }
+      return h;
+    });
+    if (updated) {
+      localStorage.setItem(PURCHASES_KEY, JSON.stringify(history));
+    }
     if (!buyerWallet) return history;
     return history.filter((h) => !h.buyerWallet || h.buyerWallet?.toLowerCase() === buyerWallet.toLowerCase());
   } catch {

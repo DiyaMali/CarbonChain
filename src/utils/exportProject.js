@@ -23,9 +23,9 @@ export function generateProjectTextReceipt(project, block = null, user = null) {
     })
     .join("\n");
 
-  const blockIndex = block?.index ?? project.blockIndex ?? "Pending Consensus";
+  const blockIndex = block?.index ?? project.blockIndex ?? "Pending Ledger Entry";
   const blockHash = block?.hash ?? project.blockHash ?? "SHA-256 Hash Generated on Ledger Append";
-  const prevHash = block?.prevHash ?? project.prevHash ?? "0x7a89f...consensus";
+  const prevHash = block?.prevHash ?? project.prevHash ?? "0x7a89f...ledger";
   const txHash = block?.txHash ?? project.txHash ?? "0x" + Array.from({ length: 64 }, () => "f").join("");
   const submitter = user?.name ? `${user.name} (${user.organisation || user.role || "IPP"})` : (project.developer || "Authorized Project Proponent");
   const wallet = project.owner || user?.walletAddress || "0xA1b2c3D4e5f6A7b8C9d0e1F2a3B4c5D6e7F8a9b0";
@@ -38,7 +38,7 @@ REGISTRY STATUS    : SUBMITTED (PENDING VVB AUDIT)
 SUBMISSION ID      : ${project.id || "N/A"}
 REGISTRY TRACKING  : ${project.registryId || `CC-IND-${new Date().getFullYear()}-${project.id?.slice(-4) || "001"}`}
 SUBMISSION DATE    : ${timestamp}
-CONSENSUS NETWORK  : Polygon Amoy / CarbonChain Immutable Hash-Chain
+LEDGER NETWORK     : Polygon Amoy / CarbonChain Immutable Hash-Chain
 
 --------------------------------------------------------------------------------
 1. PROJECT IDENTIFICATION & METRICS
@@ -142,7 +142,7 @@ export function downloadProjectDetailsJson(project, block = null, user = null) {
       blockHash: block?.hash ?? project.blockHash ?? null,
       prevHash: block?.prevHash ?? project.prevHash ?? null,
       txHash: block?.txHash ?? project.txHash ?? null,
-      consensusNetwork: "Polygon Amoy / Local Hash-Chain",
+      ledgerNetwork: "Polygon Amoy / Local Hash-Chain",
       cryptographicStandard: "SHA-256 Immutable Audit Trail",
     },
   };
@@ -371,7 +371,7 @@ export function downloadLedgerBlockRecord(block, project = null) {
       previousHash: block.prevHash,
       transactionHash: block.txHash,
       cryptographicAlgorithm: "SHA-256 Hash Chain",
-      consensusNetwork: "Polygon Amoy / CarbonChain Main Ledger",
+      ledgerNetwork: "Polygon Amoy / CarbonChain Main Ledger",
       payload: block.payload || {},
     },
     ...(project ? {

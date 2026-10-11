@@ -241,7 +241,7 @@ Guard every route by capability; wrong role redirects to the dashboard with a cl
 - Estimator: indicative first estimate; the verifier confirms the final number.
 - Price: per tonne in an indicative range; total = quantity x price.
 - Double counting: unique serials; retirement is approved only by the verifier and then locked forever.
-- Honesty line: a working prototype with a simulated settlement layer; production design is an ERC-721 contract on Polygon. The seven registry projects are real CRI listings; credits for trading are issued within CarbonChain and prices are indicative.
+- Honesty line: a working platform with a simulated settlement layer; production design is an ERC-721 contract on Polygon. The seven registry projects are real CRI listings; credits for trading are issued within CarbonChain and prices are indicative.
 - Limit: the system proves records were not altered; it cannot prove real-world claims without satellite or IoT data.
 - Fee model: CRI charges IPPs Rs 25,000 one-time plus Rs 15,000 annual (plus GST); CarbonChain uses a 1 percent transaction fee.
 - Owner to-do: supply the seven preset photos, confirm organisation names and Inter, and for a real launch add a custom domain, favicon, privacy and terms pages.

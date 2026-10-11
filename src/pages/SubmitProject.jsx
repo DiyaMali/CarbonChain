@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams, Navigate } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
+import { THEME } from "../styles/tokens";
 import {
   Send,
   Sparkles,
@@ -29,7 +31,7 @@ import {
 } from "lucide-react";
 import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
-import { submitProject, computeImpactFactor, SDG_NAMES } from "../services/ledgerService";
+import { submitProject, computeImpactFactor, SDG_NAMES, getProject } from "../services/ledgerService";
 import { cyclePreset, getPresetByType, NASHIK_PRESETS } from "../config/presets";
 import {
   calculateEstimatedCredits,
@@ -83,13 +85,18 @@ export default function SubmitProject() {
   const [location, setLocation] = useState("");
   const [district, setDistrict] = useState("Nashik");
   const [state, setState] = useState("Maharashtra");
-  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [startDate, setStartDate] = useState(
+    new Date() < new Date("2025-01-01") ? "2025-01-01" : new Date().toISOString().split("T")[0]
+  );
   const [contactPerson, setContactPerson] = useState(user?.name || "Kavita Rao");
   const [phone, setPhone] = useState("+91 98230 45678");
   const [description, setDescription] = useState("");
   const [methodology, setMethodology] = useState("ACM0002 - Grid-connected electricity generation");
   const [scale, setScale] = useState("small");
   const [proofUrl, setProofUrl] = useState("");
+  const [additionalityStatement, setAdditionalityStatement] = useState("");
+  const [baselineScenario, setBaselineScenario] = useState("");
+  const [monitoringPlan, setMonitoringPlan] = useState("");
 
   // Estimator Inputs State
   const [estimatorInputs, setEstimatorInputs] = useState({
@@ -134,7 +141,21 @@ export default function SubmitProject() {
 
   useEffect(() => {
     document.title = "Submit Project | CarbonChain";
-  }, []);
+    const resubmitId = searchParams.get("resubmit");
+    if (resubmitId) {
+      const proj = getProject(resubmitId);
+      if (proj) {
+        setName(proj.name || "");
+        setProjectType(proj.projectType || "Waste");
+        setLocation(proj.location || "");
+        setState(proj.state || "Karnataka");
+        setDescription(proj.description || "");
+        setMethodology(proj.methodology || "AMS-III.D - Methane recovery in animal manure and waste management");
+        setAskingPrice(proj.askingPrice || 1000);
+        if (proj.estimatedCO2) setEstimatedAnnualCredits(proj.estimatedCO2);
+      }
+    }
+  }, [searchParams]);
 
   // Update estimate whenever estimator inputs or project type change
   useEffect(() => {
@@ -179,6 +200,16 @@ export default function SubmitProject() {
     setProofUrl(nextPreset.proofUrl || "");
     setSdgs(nextPreset.sdgs);
     setSdgScores(nextPreset.sdgScores);
+    setStartDate("2025-01-15");
+    setAdditionalityStatement(
+      "Project satisfies financial and barrier additionality criteria. Capital investment is not mandated by statutory regulations and project viability is contingent upon carbon credit revenues."
+    );
+    setBaselineScenario(
+      "Grid electricity baseline emission factor of 0.75 tCO2/MWh corresponding to the regional thermal-dominated generation mix without clean offset capacity."
+    );
+    setMonitoringPlan(
+      "Continuous automated generation telemetry verified via calibrated bi-directional check meters and monthly utility settlement records."
+    );
 
     // Pre-populate preset photo
     if (nextPreset.photoUrl) {
@@ -284,8 +315,20 @@ export default function SubmitProject() {
     const errors = {};
     if (!name.trim()) errors.name = "Project name is required.";
     if (!location.trim()) errors.location = "Project location is required.";
+    if (!startDate || startDate < "2025-01-01") {
+      errors.startDate = "Offset projects under India's CCTS must start on or after 1 Jan 2025";
+    }
     if (!description.trim() || description.trim().length < 25) {
       errors.description = "Please provide a detailed description (at least 25 characters).";
+    }
+    if (!additionalityStatement.trim()) {
+      errors.additionalityStatement = "Additionality statement is required.";
+    }
+    if (!baselineScenario.trim()) {
+      errors.baselineScenario = "Baseline scenario is required.";
+    }
+    if (!monitoringPlan.trim()) {
+      errors.monitoringPlan = "Monitoring plan is required.";
     }
     if (!methodology.trim()) errors.methodology = "Methodology is required.";
     if (!estimatedAnnualCredits || estimatedAnnualCredits <= 0) {
@@ -342,13 +385,16 @@ export default function SubmitProject() {
         contactPerson,
         phone,
         description: description.trim(),
+        additionalityStatement: additionalityStatement.trim(),
+        baselineScenario: baselineScenario.trim(),
+        monitoringPlan: monitoringPlan.trim(),
         methodology: methodology.trim(),
         scale,
         estimatedCO2: Number(estimatedAnnualCredits),
         quantityToList: Number(quantityToList),
         askingPrice: Number(askingPrice),
         proofUrl: proofUrl.trim(),
-        imageUrl: photos[0]?.dataUrl || photos[0]?.imageUrl || "/images/presets/solar-sinnar.jpg",
+        imageUrl: photos[0]?.dataUrl || photos[0]?.imageUrl || "/seed/solar-farm.jpg",
         photos: photos.map((p) => ({
           name: p.name,
           size: p.size,
@@ -402,7 +448,15 @@ export default function SubmitProject() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="seller"
+        eyebrow="PROJECT ONBOARDING"
+        title="Submit Project"
+        subtitle="Register your emission reduction project with evidence and calculated baseline."
+        action={{ label: "Fill Preset", onClick: handleFillIt }}
+      />
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ── GREEN SUCCESS POPUP per Patch P1 spec §4 ── */}
       {successModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -498,30 +552,6 @@ export default function SubmitProject() {
         </div>
       )}
 
-      {/* ── HEADER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-stone-200 gap-4">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-[#14532D] block mb-1">
-            Project Proponent (IPP)
-          </span>
-          <h1 className="text-2xl font-semibold text-stone-900">Submit Project for Verification</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
-            Register your emission reduction project with evidence and calculated baseline.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleFillIt}
-            className="btn-outline text-xs flex items-center gap-1.5"
-            title="Cycles through Nashik and Maharashtra preset projects"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#14532D]" />
-            Fill it
-          </button>
-        </div>
-      </div>
-
       {/* Global Error Banner */}
       {submissionError && (
         <div className="mb-6 p-4 rounded border border-rose-200 bg-rose-50 text-rose-800 text-xs flex items-start gap-2.5">
@@ -601,14 +631,17 @@ export default function SubmitProject() {
 
             <div>
               <label className="block text-xs font-medium text-stone-700 mb-1">
-                Crediting Start Date
+                Crediting Start Date <span className="text-rose-500">*</span>
               </label>
               <input
                 type="date"
+                min="2025-01-01"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full text-xs px-3 py-2 bg-stone-50 border border-stone-200 rounded focus:border-[#14532D] focus:outline-none"
               />
+              <span className="text-[10px] text-stone-500 block mt-0.5">Must be on or after 1 Jan 2025 (India CCTS)</span>
+              {formErrors.startDate && <p className="text-rose-600 text-[11px] mt-1">{formErrors.startDate}</p>}
             </div>
 
             <div>
@@ -635,7 +668,7 @@ export default function SubmitProject() {
 
             <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-stone-700 mb-1">
-                Methodology Specification <span className="text-rose-500">*</span>
+                CDM reference methodology <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -644,6 +677,7 @@ export default function SubmitProject() {
                 placeholder="e.g. ACM0002 - Grid-connected electricity generation"
                 className="w-full text-xs px-3 py-2 bg-stone-50 border border-stone-200 rounded focus:border-[#14532D] focus:outline-none"
               />
+              {formErrors.methodology && <p className="text-rose-600 text-[11px] mt-1">{formErrors.methodology}</p>}
             </div>
 
             <div className="sm:col-span-2">
@@ -654,10 +688,58 @@ export default function SubmitProject() {
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe project operations, technology, local ecosystem impacts, and emissions additionality..."
+                placeholder="Describe project operations, technology, and local ecosystem impacts (min 25 characters)..."
                 className="w-full text-xs px-3 py-2 bg-stone-50 border border-stone-200 rounded focus:border-[#14532D] focus:outline-none"
               />
               {formErrors.description && <p className="text-rose-600 text-[11px] mt-1">{formErrors.description}</p>}
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-stone-700 mb-1">
+                Additionality statement <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={2}
+                value={additionalityStatement}
+                onChange={(e) => setAdditionalityStatement(e.target.value)}
+                placeholder="Explain why the project exceeds statutory mandates and requires carbon credit incentive..."
+                className="w-full text-xs px-3 py-2 bg-stone-50 border border-stone-200 rounded focus:border-[#14532D] focus:outline-none"
+              />
+              {formErrors.additionalityStatement && (
+                <p className="text-rose-600 text-[11px] mt-1">{formErrors.additionalityStatement}</p>
+              )}
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-stone-700 mb-1">
+                Baseline scenario <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={2}
+                value={baselineScenario}
+                onChange={(e) => setBaselineScenario(e.target.value)}
+                placeholder="Describe the counterfactual business-as-usual emission baseline without this project..."
+                className="w-full text-xs px-3 py-2 bg-stone-50 border border-stone-200 rounded focus:border-[#14532D] focus:outline-none"
+              />
+              {formErrors.baselineScenario && (
+                <p className="text-rose-600 text-[11px] mt-1">{formErrors.baselineScenario}</p>
+              )}
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-stone-700 mb-1">
+                Monitoring plan <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={2}
+                value={monitoringPlan}
+                onChange={(e) => setMonitoringPlan(e.target.value)}
+                placeholder="Detail metering devices, telemetry protocols, calibration frequencies and audit trails..."
+                className="w-full text-xs px-3 py-2 bg-stone-50 border border-stone-200 rounded focus:border-[#14532D] focus:outline-none"
+              />
+              {formErrors.monitoringPlan && (
+                <p className="text-rose-600 text-[11px] mt-1">{formErrors.monitoringPlan}</p>
+              )}
             </div>
           </div>
         </div>
@@ -674,7 +756,7 @@ export default function SubmitProject() {
               </p>
             </div>
             <span className="text-[11px] font-mono px-2 py-0.5 bg-stone-100 rounded text-stone-600 border border-stone-200">
-              Grid Factor: {DEFAULT_FACTORS.gridEmissionFactor} tCO2/MWh
+              Grid Factor: {DEFAULT_FACTORS.gridEmissionFactor} tCO2/MWh (Indicative default)
             </span>
           </div>
 
@@ -698,7 +780,7 @@ export default function SubmitProject() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-stone-700 mb-1">
-                  Capacity Utilisation Factor (%)
+                  Capacity Utilisation Factor (%) (Indicative default: 19%)
                 </label>
                 <input
                   type="number"
@@ -730,7 +812,7 @@ export default function SubmitProject() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-stone-700 mb-1">Survival Rate (%)</label>
+                <label className="block text-xs font-medium text-stone-700 mb-1">Survival Rate (%) (Indicative default: 85%)</label>
                 <input
                   type="number"
                   min="1"
@@ -743,7 +825,7 @@ export default function SubmitProject() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-stone-700 mb-1">Sequestration Rate (t/ha/yr)</label>
+                <label className="block text-xs font-medium text-stone-700 mb-1">Sequestration Rate (t/ha/yr) (Indicative default: 8)</label>
                 <input
                   type="number"
                   step="0.5"
@@ -756,7 +838,7 @@ export default function SubmitProject() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-stone-700 mb-1">Nature Buffer Pool (%)</label>
+                <label className="block text-xs font-medium text-stone-700 mb-1">Nature Buffer Pool (%) (Indicative default: 10%)</label>
                 <input
                   type="number"
                   min="0"
@@ -815,7 +897,7 @@ export default function SubmitProject() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-stone-700 mb-1">Avoidance Factor (tCO2e/t)</label>
+                <label className="block text-xs font-medium text-stone-700 mb-1">Avoidance Factor (tCO2e/t) (Indicative default: 0.4)</label>
                 <input
                   type="number"
                   step="0.05"
@@ -889,7 +971,7 @@ export default function SubmitProject() {
 
             <div>
               <label className="block text-xs font-medium text-stone-700 mb-1">
-                Quantity to List (tCO2e) <span className="text-rose-500">*</span>
+                Forward quantity to list (estimate, issued after verified monitoring) <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
@@ -1157,6 +1239,7 @@ export default function SubmitProject() {
           </div>
         </div>
       </form>
+      </div>
     </div>
   );
 }

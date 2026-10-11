@@ -15,6 +15,8 @@ import {
   RotateCcw
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import PageHeader from "../components/PageHeader";
+import { THEME, STATUS_COLORS } from "../styles/tokens";
 import {
   getUserNotifications,
   markNotificationAsRead,
@@ -89,128 +91,127 @@ export default function Notifications() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-[#14532D] block mb-1">
-            Activity Stream
-          </span>
-          <h1 className="text-2xl font-semibold text-stone-900">Notifications</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
-            Audit logs and transactional updates regarding your projects, purchases, and retirement authorizations.
-          </p>
-        </div>
-
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        eyebrow="ACTIVITY STREAM"
+        title="Notifications"
+        subtitle="Audit logs and transactional updates regarding your projects, purchases, and retirement authorizations."
+        action={
+          unreadCount > 0
+            ? {
+                label: "Mark all as read",
+                onClick: handleMarkAllRead,
+              }
+            : null
+        }
+      />
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
+        {/* Filter Tabs */}
         <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <button
-              type="button"
-              onClick={handleMarkAllRead}
-              className="btn-neutral-outline text-xs px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
-            >
-              <Check className="w-3.5 h-3.5" />
-              <span>Mark all as read</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setFilter("all")}
+            className={`px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
+              filter === "all"
+                ? "bg-[#14452F] text-white"
+                : "bg-white text-stone-700 border border-[#E3E8E5] hover:bg-stone-50"
+            }`}
+          >
+            All ({notifications.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter("unread")}
+            className={`px-3 py-1.5 rounded text-xs font-semibold transition cursor-pointer ${
+              filter === "unread"
+                ? "bg-[#14452F] text-white"
+                : "bg-white text-stone-700 border border-[#E3E8E5] hover:bg-stone-50"
+            }`}
+          >
+            Unread ({unreadCount})
+          </button>
         </div>
-      </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setFilter("all")}
-          className={`px-3 py-1 rounded text-xs font-medium transition cursor-pointer ${
-            filter === "all"
-              ? "bg-[#14532D] text-white"
-              : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-          }`}
-        >
-          All ({notifications.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter("unread")}
-          className={`px-3 py-1 rounded text-xs font-medium transition cursor-pointer ${
-            filter === "unread"
-              ? "bg-[#14532D] text-white"
-              : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-          }`}
-        >
-          Unread ({unreadCount})
-        </button>
-      </div>
-
-      {/* Notifications List */}
-      {filtered.length === 0 ? (
-        <div className="clean-card p-12 text-center bg-white border border-stone-200 rounded-lg">
-          <Bell className="w-10 h-10 text-stone-300 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-stone-900 mb-1">No notifications</h3>
-          <p className="text-xs text-stone-500 max-w-sm mx-auto">
-            {filter === "unread"
-              ? "All notifications have been marked as read."
-              : "You have no activity notifications at this time."}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2.5">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className={`clean-card p-4 rounded-lg border transition-all flex items-start gap-3.5 ${
-                item.read
-                  ? "bg-white border-stone-200"
-                  : "bg-emerald-50/20 border-emerald-300 shadow-2xs"
-              }`}
-            >
-              <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
-                {getIconForType(item.type)}
-              </div>
-
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="text-xs font-semibold text-stone-900 leading-tight">
-                    {item.title}
-                  </h4>
-                  <span className="text-[10px] text-stone-400 font-mono whitespace-nowrap">
-                    {new Date(item.timestamp).toLocaleString("en-IN", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </span>
+        {/* Notifications List */}
+        {filtered.length === 0 ? (
+          <div
+            className="p-12 text-center rounded-lg shadow-xs"
+            style={{ backgroundColor: "#FFFFFF", border: "1px solid #E3E8E5" }}
+          >
+            <Bell className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+            <h3 className="text-sm font-semibold text-stone-900 mb-1">No notifications</h3>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto">
+              {filter === "unread"
+                ? "All notifications have been marked as read."
+                : "You have no activity notifications at this time."}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((item) => (
+              <div
+                key={item.id}
+                className="p-4 rounded-lg transition-all flex items-start gap-3.5 shadow-xs"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E3E8E5",
+                  borderLeft: item.read ? "4px solid #E3E8E5" : "4px solid #14452F",
+                }}
+              >
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                  style={{
+                    backgroundColor: item.read ? "#F4F7F5" : "#E6F4EC",
+                    color: item.read ? "#5B6B63" : "#14452F",
+                  }}
+                >
+                  {getIconForType(item.type)}
                 </div>
 
-                <p className="text-xs text-stone-700 leading-relaxed">
-                  {item.message}
-                </p>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-xs font-bold text-stone-900 leading-tight">
+                      {item.title}
+                    </h4>
+                    <span className="text-[10px] text-stone-400 font-mono whitespace-nowrap">
+                      {new Date(item.timestamp).toLocaleString("en-IN", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </span>
+                  </div>
 
-                <div className="pt-1.5 flex items-center gap-3 text-xs">
-                  {item.link && (
-                    <Link
-                      to={item.link}
-                      onClick={() => !item.read && handleMarkRead(item.id)}
-                      className="text-[#14532D] hover:underline font-semibold inline-flex items-center gap-1 text-[11px]"
-                    >
-                      <span>View details</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  )}
-                  {!item.read && (
-                    <button
-                      type="button"
-                      onClick={() => handleMarkRead(item.id)}
-                      className="text-stone-400 hover:text-stone-700 text-[11px] cursor-pointer"
-                    >
-                      Mark as read
-                    </button>
-                  )}
+                  <p className="text-xs text-stone-700 leading-relaxed">
+                    {item.message}
+                  </p>
+
+                  <div className="pt-1.5 flex items-center gap-3 text-xs">
+                    {item.link && (
+                      <Link
+                        to={item.link}
+                        onClick={() => !item.read && handleMarkRead(item.id)}
+                        className="text-[#14452F] hover:underline font-semibold inline-flex items-center gap-1 text-[11px]"
+                      >
+                        <span>View details</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    )}
+                    {!item.read && (
+                      <button
+                        type="button"
+                        onClick={() => handleMarkRead(item.id)}
+                        className="text-stone-400 hover:text-stone-700 text-[11px] cursor-pointer"
+                      >
+                        Mark as read
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

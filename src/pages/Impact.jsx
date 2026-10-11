@@ -26,6 +26,9 @@ import { computeImpactFactor, SDG_NAMES, getHoldings, getRetirementRequests } fr
 import { CRI_PROJECTS } from "../data/criProjects";
 import ProjectTypeIcon from "../components/ProjectTypeIcon";
 import EcoIcon from "../components/EcoIcon";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
+import { THEME, STATUS_COLORS } from "../styles/tokens";
 
 // Scientific & heuristic approximations
 const TREES_PER_TONNE = 45; // IPCC FAR 1990 heuristic
@@ -116,85 +119,57 @@ export default function Impact() {
   }, [totalSequestrationCapacity]);
 
   return (
-    <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
-      {/* ─── 1. Header with Breadcrumb & Quick Actions ───────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-200 gap-4">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-forest block mb-1">
-            Ecosystem Metrics &bull; Ledger Verified
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-charcoal">
-            Environmental Impact & Offset Ledger
-          </h1>
-          <p className="text-xs sm:text-sm text-charcoal-muted mt-1">
-            Quantified carbon removals, ecological equivalents, and permanent retirement records verified by SHA-256 blocks.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={refetch}
-            className="btn-neutral-outline text-xs flex items-center gap-1.5"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            Refresh Data
-          </button>
-          <Link to="/marketplace" className="btn-outline text-xs flex items-center gap-1.5">
-            <EcoIcon name="leaf" size="xs" />
-            Explore Projects
-          </Link>
-        </div>
-      </div>
-
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="buyer"
+        eyebrow="ECOSYSTEM METRICS"
+        title="Impact Portfolio"
+        subtitle="Quantified carbon removals, ecological equivalents, and permanent retirement records verified by SHA-256 blocks."
+        action={{ label: "Explore Projects", to: "/marketplace" }}
+      >
+        <button
+          onClick={refetch}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/40 text-xs font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
+          style={{ backgroundColor: "transparent" }}
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          <span>Refresh Data</span>
+        </button>
+      </PageHeader>
+      <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* ─── 2. Full-Width 4-Column Hero Stats ───────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="clean-card p-5 border-l-4 border-l-forest">
-          <div className="text-[11px] font-semibold text-charcoal-muted uppercase tracking-wider mb-1">
-            Permanently Retired
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-forest">
-            {platformTonnes.toLocaleString("en-IN")} <span className="text-sm font-normal text-charcoal-muted">tCO2e</span>
-          </div>
-          <div className="text-[11px] text-emerald-700 flex items-center gap-1.5 mt-1 font-medium">
-            <EcoIcon name="shieldCheck" size="xs" /> 100% on-chain burned & locked
-          </div>
-        </div>
-
-        <div className="clean-card p-5 border-l-4 border-l-emerald-600">
-          <div className="text-[11px] font-semibold text-charcoal-muted uppercase tracking-wider mb-1">
-            Tree-Years Equivalent
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-charcoal">
-            {(platformTonnes * TREES_PER_TONNE).toLocaleString("en-IN")}
-          </div>
-          <div className="text-[11px] text-charcoal-subtle mt-1">
-            ~45 tree-years per tCO2e (IPCC FAR)
-          </div>
-        </div>
-
-        <div className="clean-card p-5 border-l-4 border-l-sky-600">
-          <div className="text-[11px] font-semibold text-charcoal-muted uppercase tracking-wider mb-1">
-            Vehicle km Avoided
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-charcoal">
-            {((platformTonnes * KM_PER_TONNE) / 100000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}{" "}
-            <span className="text-sm font-normal text-charcoal-muted">Lakh km</span>
-          </div>
-          <div className="text-[11px] text-charcoal-subtle mt-1">
-            ~170g CO2/km ICE car benchmark
-          </div>
-        </div>
-
-        <div className="clean-card p-5 border-l-4 border-l-amber-600">
-          <div className="text-[11px] font-semibold text-charcoal-muted uppercase tracking-wider mb-1">
-            Annual Sequestration
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-charcoal">
-            {totalSequestrationCapacity.toLocaleString("en-IN")} <span className="text-sm font-normal text-charcoal-muted">MCUs/yr</span>
-          </div>
-          <div className="text-[11px] text-charcoal-subtle mt-1">
-            Across 7 active CRI registered projects
-          </div>
-        </div>
+        <StatCard
+          type="credits"
+          title="Permanently Retired"
+          value={platformTonnes.toLocaleString("en-IN")}
+          unit="tCO2e"
+          subtext="100% on-chain burned & locked"
+          icon={<ShieldCheck className="w-4 h-4" />}
+        />
+        <StatCard
+          type="money"
+          title="Tree-Years Equivalent"
+          value={(platformTonnes * TREES_PER_TONNE).toLocaleString("en-IN")}
+          subtext="~45 tree-years per tCO2e (IPCC)"
+          icon={<TreePine className="w-4 h-4" />}
+        />
+        <StatCard
+          type="blocks"
+          title="Vehicle km Avoided"
+          value={((platformTonnes * KM_PER_TONNE) / 100000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}
+          unit="Lakh km"
+          subtext="~170g CO2/km car benchmark"
+          icon={<Car className="w-4 h-4" />}
+        />
+        <StatCard
+          type="pending"
+          title="Annual Sequestration"
+          value={totalSequestrationCapacity.toLocaleString("en-IN")}
+          unit="MCUs/yr"
+          subtext="Across active CRI projects"
+          icon={<Sparkles className="w-4 h-4" />}
+        />
       </div>
 
       {/* ─── 3. Personal Impact vs Platform Equivalents (2 Large Columns) ──── */}
@@ -524,6 +499,7 @@ export default function Impact() {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

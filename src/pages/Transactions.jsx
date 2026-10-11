@@ -31,9 +31,14 @@ import {
   verifyChainIntegrity,
   getAllCredits,
 } from "../services/ledgerService";
-import { isSellUser, isBuyUser } from "../services/roleService";
+import { isSellUser, isBuyUser, isVerifierUser } from "../services/roleService";
 import { downloadLedgerBlockRecord } from "../utils/exportProject";
 import ProjectTypeIcon from "../components/ProjectTypeIcon";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
+import CopyableText from "../components/CopyableText";
+import ActionTooltip from "../components/ActionTooltip";
+import { THEME, ROLE_ACCENTS } from "../styles/tokens";
 
 function formatINR(n) {
   if (n === null || n === undefined) return "₹0";
@@ -50,11 +55,21 @@ export default function Transactions() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const isVerifier = isVerifierUser(user);
   const isSeller = isSellUser(user);
   const isBuyer = isBuyUser(user);
 
-  const defaultTab = searchParams.get("tab") || (isSeller && !isBuyer ? "sales" : "purchases");
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const resolvedDefaultTab = useMemo(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "sales") return "sales";
+    if (tabParam) return tabParam;
+    if (isSeller) return "sales";
+    if (isBuyer) return "purchases";
+    if (isVerifier) return "all";
+    return "purchases";
+  }, [searchParams, isSeller, isBuyer, isVerifier]);
+
+  const [activeTab, setActiveTab] = useState(resolvedDefaultTab);
   const [searchTerm, setSearchTerm] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
@@ -63,15 +78,18 @@ export default function Transactions() {
   const effectiveWallet = account || (isDemoMode && user?.walletAddress);
 
   useEffect(() => {
-    document.title = "Transactions & Ledger | CarbonChain";
+    document.title = "Transactions | CarbonChain";
   }, []);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab) {
+    if (tab === "sales") {
+      setActiveTab("sales");
+      navigate("/transactions", { replace: true });
+    } else if (tab) {
       setActiveTab(tab);
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const allTxs = useMemo(() => {
     return getAllTransactions();
@@ -181,34 +199,17 @@ export default function Transactions() {
   const totalBlocks = blocks.length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-stone-200 gap-4">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-[#14532D] block mb-1">
-            Settlement &amp; Audit Trail
-          </span>
-          <h1 className="text-2xl font-semibold text-stone-900">
-            {isSeller && !isBuyer ? "Sales & Settlements" : "Transaction History"}
-          </h1>
-          <p className="text-sm text-stone-500 mt-0.5">
-            Cryptographic ledger records anchored by SHA-256 hash chains.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleVerifyChain}
-            disabled={verifying}
-            className="btn-outline text-xs flex items-center gap-1.5 cursor-pointer"
-            title="Recompute all block hashes to verify chain integrity"
-          >
-            <ShieldCheck className={`w-3.5 h-3.5 ${verifying ? "animate-spin" : "text-[#14532D]"}`} />
-            {verifying ? "Verifying Chain..." : "Verify Ledger Integrity"}
-          </button>
-        </div>
-      </div>
-
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        eyebrow="LEDGER RECORDS"
+        title="Transactions"
+        subtitle="Sales, purchases and ledger records for your account."
+        action={{
+          label: verifying ? "Verifying Chain..." : "Verify Ledger Integrity",
+          onClick: handleVerifyChain,
+        }}
+      />
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* ── Integrity Verification Banner ── */}
       {verifyResult && (
         <div
@@ -251,106 +252,56 @@ export default function Transactions() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {isSeller ? (
           <>
-            {/* Seller Metric 1 */}
-            <div className="bg-white p-4 rounded border border-stone-200 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                <span>Credits Sold</span>
-                <TrendingUp className="w-4 h-4 text-[#14532D]" />
-              </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold font-mono text-stone-900">
-                  {totalSalesTonnes.toLocaleString("en-IN")}
-                </span>
-                <span className="text-xs text-stone-500 ml-1">tCO2e</span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-500">
-                Across {sales.length} settled buyer order{sales.length !== 1 ? "s" : ""}
-              </div>
-            </div>
-
-            {/* Seller Metric 2 */}
-            <div className="bg-white p-4 rounded border border-stone-200 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                <span>Net Payout Received</span>
-                <Coins className="w-4 h-4 text-emerald-700" />
-              </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold font-mono text-emerald-800">
-                  {formatINR(totalNetRevenue)}
-                </span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-500">
-                Net after 1% platform fee deduction
-              </div>
-            </div>
+            <StatCard
+              type="credits"
+              title="Credits Sold"
+              value={totalSalesTonnes.toLocaleString("en-IN")}
+              unit="tCO2e"
+              subtext={`Across ${sales.length} settled buyer order${sales.length !== 1 ? "s" : ""}`}
+              icon={<TrendingUp className="w-4 h-4" />}
+            />
+            <StatCard
+              type="money"
+              title="Net Payout Received"
+              value={formatINR(totalNetRevenue)}
+              subtext="Net after 1% platform fee deduction"
+              icon={<Coins className="w-4 h-4" />}
+            />
           </>
         ) : (
           <>
-            {/* Buyer Metric 1 */}
-            <div className="bg-white p-4 rounded border border-stone-200 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                <span>Purchased Credits</span>
-                <Coins className="w-4 h-4 text-[#14532D]" />
-              </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold font-mono text-stone-900">
-                  {totalPurchasedTonnes.toLocaleString("en-IN")}
-                </span>
-                <span className="text-xs text-stone-500 ml-1">tCO2e</span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-500">
-                Across {purchases.length} settled purchase{purchases.length !== 1 ? "s" : ""}
-              </div>
-            </div>
-
-            {/* Buyer Metric 2 */}
-            <div className="bg-white p-4 rounded border border-stone-200 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                <span>Total Value Paid</span>
-                <ArrowLeftRight className="w-4 h-4 text-emerald-700" />
-              </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold font-mono text-emerald-800">
-                  {formatINR(totalAmountSpent)}
-                </span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-500">
-                Includes 1% platform settlement fee
-              </div>
-            </div>
+            <StatCard
+              type="credits"
+              title="Purchased Credits"
+              value={totalPurchasedTonnes.toLocaleString("en-IN")}
+              unit="tCO2e"
+              subtext={`Across ${purchases.length} settled purchase${purchases.length !== 1 ? "s" : ""}`}
+              icon={<Coins className="w-4 h-4" />}
+            />
+            <StatCard
+              type="money"
+              title="Total Value Paid"
+              value={formatINR(totalAmountSpent)}
+              subtext="Includes 1% platform settlement fee"
+              icon={<ArrowLeftRight className="w-4 h-4" />}
+            />
           </>
         )}
 
-        {/* Common Metric 3: Ledger Blocks */}
-        <div className="bg-white p-4 rounded border border-stone-200 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider">
-            <span>Ledger Blocks</span>
-            <Layers className="w-4 h-4 text-teal-700" />
-          </div>
-          <div className="mt-2">
-            <span className="text-2xl font-bold font-mono text-stone-900">
-              #{totalBlocks}
-            </span>
-            <span className="text-xs text-stone-500 ml-1">blocks</span>
-          </div>
-          <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-500">
-            SHA-256 tamper-evident chain
-          </div>
-        </div>
-
-        {/* Common Metric 4: CarbonChain Network */}
-        <div className="bg-white p-4 rounded border border-stone-200 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider">
-            <span>Settlement Network</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-          <div className="mt-2">
-            <span className="text-lg font-bold text-stone-900">CarbonChain Network</span>
-          </div>
-          <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-emerald-700 font-medium">
-            SHA-256 hash-chained consensus
-          </div>
-        </div>
+        <StatCard
+          type="blocks"
+          title="Ledger Blocks"
+          value={`#${totalBlocks}`}
+          subtext="SHA-256 tamper-evident chain"
+          icon={<Layers className="w-4 h-4" />}
+        />
+        <StatCard
+          type="pending"
+          title="Ledger Type"
+          value="Simulated"
+          subtext="Designed for Polygon Amoy"
+          icon={<ShieldCheck className="w-4 h-4" />}
+        />
       </div>
 
       {/* ── Tabs & Filter Bar ── */}
@@ -364,7 +315,11 @@ export default function Transactions() {
                 type="button"
                 onClick={() => {
                   setActiveTab("sales");
-                  setSearchParams({ tab: "sales" });
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete("tab");
+                    return next;
+                  });
                 }}
                 className={`px-4 py-1.5 rounded transition-all cursor-pointer ${
                   activeTab === "sales"
@@ -450,8 +405,8 @@ export default function Transactions() {
               </div>
             ) : (
               <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-stone-200 text-stone-400 uppercase tracking-wider font-semibold text-[10px]">
+                <thead style={{ backgroundColor: "#EEF3F0" }}>
+                  <tr className="border-b border-[#E3E8E5] text-stone-600 uppercase tracking-wider font-semibold text-[10px]">
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Buyer</th>
                     <th className="py-3 px-3">Project / Asset</th>
@@ -483,7 +438,7 @@ export default function Transactions() {
                         : "Institutional Buyer";
 
                     return (
-                      <tr key={item.id || idx} className="hover:bg-stone-50/70 transition-colors">
+                      <tr key={item.id || idx} className="hover-row transition-colors">
                         <td className="py-3 px-3 whitespace-nowrap text-stone-500">{dateStr}</td>
                         <td className="py-3 px-3 whitespace-nowrap">
                           <span className="font-semibold text-stone-800">{buyerLabel}</span>
@@ -491,7 +446,9 @@ export default function Transactions() {
                         <td className="py-3 px-3">
                           <div className="font-semibold text-stone-900">{item.projectName}</div>
                           <div className="text-[10px] font-mono text-stone-400">
-                            {item.serialRange || item.creditId}
+                            {item.serialRange || item.creditId ? (
+                              <CopyableText text={item.serialRange || item.creditId} />
+                            ) : null}
                           </div>
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap font-mono font-semibold text-stone-900">
@@ -503,11 +460,15 @@ export default function Transactions() {
                         <td className="py-3 px-3 whitespace-nowrap font-mono text-stone-400">
                           -{formatINR(fee)}
                         </td>
-                        <td className="py-3 px-3 whitespace-nowrap font-mono font-bold text-emerald-800">
+                        <td className="py-3 px-3 whitespace-nowrap font-mono font-bold" style={{ color: "#0F5C66" }}>
                           {formatINR(netReceived)}
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap font-mono text-[11px] text-stone-600">
-                          {item.paymentRef || item.paymentReference || "-"}
+                          {item.paymentRef || item.paymentReference ? (
+                            <CopyableText text={item.paymentRef || item.paymentReference} />
+                          ) : (
+                            "-"
+                          )}
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap text-right">
                           {item.blockIndex !== undefined ? (
@@ -556,8 +517,8 @@ export default function Transactions() {
               </div>
             ) : (
               <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-stone-200 text-stone-400 uppercase tracking-wider font-semibold text-[10px]">
+                <thead style={{ backgroundColor: "#EEF3F0" }}>
+                  <tr className="border-b border-[#E3E8E5] text-stone-600 uppercase tracking-wider font-semibold text-[10px]">
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Project / Serial</th>
                     <th className="py-3 px-3">Quantity</th>
@@ -573,7 +534,7 @@ export default function Transactions() {
                     const isRetired = matchedCredit?.retired;
 
                     return (
-                      <tr key={item.id || idx} className="hover:bg-stone-50/70 transition-colors">
+                      <tr key={item.id || idx} className="hover-row transition-colors">
                         <td className="py-3 px-3 whitespace-nowrap text-stone-500">
                           {item.purchasedAt
                             ? new Date(item.purchasedAt).toLocaleDateString("en-IN", {
@@ -586,21 +547,27 @@ export default function Transactions() {
                         <td className="py-3 px-3">
                           <div className="font-semibold text-stone-900">{item.projectName}</div>
                           <div className="text-[10px] font-mono text-stone-400">
-                            {item.serialRange || item.creditId}
+                            {item.serialRange || item.creditId ? (
+                              <CopyableText text={item.serialRange || item.creditId} />
+                            ) : null}
                           </div>
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap font-mono font-semibold text-stone-900">
                           {item.quantity?.toLocaleString("en-IN")}{" "}
                           <span className="text-[11px] text-stone-500">tCO2e</span>
                         </td>
-                        <td className="py-3 px-3 whitespace-nowrap font-mono font-semibold text-stone-900">
+                        <td className="py-3 px-3 whitespace-nowrap font-mono font-semibold" style={{ color: "#0F5C66" }}>
                           {formatINR(item.totalPaid || item.pricePaid)}
                           <span className="block text-[10px] text-stone-400 font-normal">
                             @{formatINR(item.pricePerTonne || item.pricePerTonnePaid)} / t
                           </span>
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap font-mono text-[11px] text-stone-600">
-                          {item.paymentRef || item.paymentReference || "-"}
+                          {item.paymentRef || item.paymentReference ? (
+                            <CopyableText text={item.paymentRef || item.paymentReference} />
+                          ) : (
+                            "-"
+                          )}
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap">
                           {item.blockIndex !== undefined ? (
@@ -636,8 +603,8 @@ export default function Transactions() {
         {activeTab === "all" && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-stone-200 text-stone-400 uppercase tracking-wider font-semibold text-[10px]">
+              <thead style={{ backgroundColor: "#EEF3F0" }}>
+                <tr className="border-b border-[#E3E8E5] text-stone-600 uppercase tracking-wider font-semibold text-[10px]">
                   <th className="py-3 px-3">Date</th>
                   <th className="py-3 px-3">Event Type</th>
                   <th className="py-3 px-3">Project / Asset</th>
@@ -649,7 +616,7 @@ export default function Transactions() {
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium">
                 {filteredAllTxs.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-stone-50/70 transition-colors">
+                  <tr key={tx.id} className="hover-row transition-colors">
                     <td className="py-3 px-3 text-stone-500 whitespace-nowrap">{tx.date}</td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span
@@ -670,18 +637,25 @@ export default function Transactions() {
                     </td>
                     <td className="py-3 px-3">
                       <div className="font-semibold text-stone-900">{tx.project}</div>
-                      <div className="font-mono text-[10px] text-stone-500">{tx.tokenId}</div>
+                      <div className="font-mono text-[10px] text-stone-500">
+                        {tx.tokenId ? <CopyableText text={tx.tokenId} /> : null}
+                      </div>
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap font-mono">
                       {tx.quantity ? `${tx.quantity.toLocaleString("en-IN")} t` : "-"}
                     </td>
-                    <td className="py-3 px-3 whitespace-nowrap font-mono text-stone-800 font-semibold">
+                    <td className="py-3 px-3 whitespace-nowrap font-mono font-semibold" style={{ color: "#0F5C66" }}>
                       {tx.value ? formatINR(tx.value) : "-"}
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap font-mono text-[11px]">
-                      <span className="text-stone-500 truncate max-w-[120px] inline-block align-bottom" title={tx.blockHash}>
-                        {tx.blockHash ? `${tx.blockHash.slice(0, 8)}...${tx.blockHash.slice(-6)}` : "-"}
-                      </span>
+                      {tx.blockHash ? (
+                        <CopyableText
+                          text={tx.blockHash}
+                          displayText={`${tx.blockHash.slice(0, 8)}...${tx.blockHash.slice(-6)}`}
+                        />
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap text-right">
                       <Link
@@ -702,11 +676,11 @@ export default function Transactions() {
         {activeTab === "blocks" && (
           <div className="overflow-x-auto space-y-3">
             <div className="text-xs text-stone-500 font-mono pb-1">
-              Consensus Blocks ({blocks.length} total blocks in hash-chain)
+              Ledger Blocks ({blocks.length} total blocks in hash-chain)
             </div>
             <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-stone-200 text-stone-400 uppercase tracking-wider font-semibold text-[10px]">
+              <thead style={{ backgroundColor: "#EEF3F0" }}>
+                <tr className="border-b border-[#E3E8E5] text-stone-600 uppercase tracking-wider font-semibold text-[10px]">
                   <th className="py-3 px-3">Height</th>
                   <th className="py-3 px-3">Action</th>
                   <th className="py-3 px-3">Block Hash</th>
@@ -717,16 +691,26 @@ export default function Transactions() {
               </thead>
               <tbody className="divide-y divide-stone-100 font-mono">
                 {blocks.map((b) => (
-                  <tr key={b.index} className="hover:bg-stone-50/70 transition-colors">
+                  <tr key={b.index} className="hover-row transition-colors">
                     <td className="py-3 px-3 font-bold text-stone-900">#{b.index}</td>
                     <td className="py-3 px-3 font-sans font-semibold text-[#14532D]">
                       {b.action}
                     </td>
-                    <td className="py-3 px-3 text-emerald-800 truncate max-w-[140px]" title={b.hash}>
-                      {b.hash.slice(0, 8)}...{b.hash.slice(-6)}
+                    <td className="py-3 px-3 text-emerald-800 max-w-[150px]">
+                      <CopyableText
+                        text={b.hash}
+                        displayText={`${b.hash.slice(0, 8)}...${b.hash.slice(-6)}`}
+                      />
                     </td>
-                    <td className="py-3 px-3 text-stone-400 truncate max-w-[140px]" title={b.prevHash}>
-                      {b.prevHash.slice(0, 8)}...{b.prevHash.slice(-6)}
+                    <td className="py-3 px-3 text-stone-400 max-w-[150px]">
+                      {b.prevHash ? (
+                        <CopyableText
+                          text={b.prevHash}
+                          displayText={`${b.prevHash.slice(0, 8)}...${b.prevHash.slice(-6)}`}
+                        />
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="py-3 px-3 font-sans text-stone-500 whitespace-nowrap">
                       {new Date(b.timestamp).toLocaleString("en-IN", {
@@ -743,14 +727,16 @@ export default function Transactions() {
                       >
                         Inspect
                       </Link>
-                      <button
-                        type="button"
-                        onClick={() => downloadLedgerBlockRecord(b)}
-                        className="btn-neutral-outline text-[11px] px-2 py-1 inline-flex items-center gap-1"
-                        title="Download Block Record"
-                      >
-                        <Download className="w-3 h-3" />
-                      </button>
+                      <ActionTooltip label="Download Block Record">
+                        <button
+                          type="button"
+                          aria-label="Download Block Record"
+                          onClick={() => downloadLedgerBlockRecord(b)}
+                          className="btn-neutral-outline text-[11px] px-2 py-1 inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Download className="w-3 h-3" />
+                        </button>
+                      </ActionTooltip>
                     </td>
                   </tr>
                 ))}
@@ -758,6 +744,7 @@ export default function Transactions() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

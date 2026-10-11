@@ -119,19 +119,39 @@ export default function PaymentSheet({ credit, project, onClose, onPurchased }) 
 
   const handleConfirmInWallet = async () => {
     setStep("confirming_ledger");
+    let result = null;
     try {
       // 1.5s ledger confirmation step per spec §3.5
       await new Promise((r) => setTimeout(r, 1500));
-      const result = await buyCredit(credit.id, account, user?.id || "usr_ironbridge", parsedQty);
+      result = await buyCredit(credit.id, account, user?.id || "usr_ironbridge", parsedQty);
       setPurchaseResult(result);
       setStep("success");
-      toast.success(`Purchase completed. ${parsedQty.toLocaleString("en-IN")} tCO2e purchased.`);
-      if (typeof onPurchased === "function") {
-        onPurchased(result);
-      }
     } catch (err) {
       setErrorMessage(err.message || "Failed to finalize purchase on ledger.");
       setStep("error");
+      return;
+    }
+
+    // Post-purchase notification & callback (safe from interrupting success state)
+    try {
+      if (toast && typeof toast.success === "function") {
+        toast.success(`Purchase completed. ${parsedQty.toLocaleString("en-IN")} tCO2e purchased.`);
+      } else if (toast && typeof toast.addToast === "function") {
+        toast.addToast({
+          type: "success",
+          message: `Purchase completed. ${parsedQty.toLocaleString("en-IN")} tCO2e purchased.`,
+        });
+      }
+    } catch (toastErr) {
+      console.warn("Post-purchase toast ignored:", toastErr);
+    }
+
+    try {
+      if (typeof onPurchased === "function") {
+        onPurchased(result);
+      }
+    } catch (callbackErr) {
+      console.warn("Post-purchase callback warning:", callbackErr);
     }
   };
 

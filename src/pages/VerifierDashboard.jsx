@@ -37,6 +37,11 @@ import {
 } from "../services/ledgerService";
 import { getPriceBand } from "../config/factors";
 import { verifyFileFingerprint } from "../services/fileStore";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
+import CopyableText from "../components/CopyableText";
+import TermTooltip from "../components/TermTooltip";
+import ActionTooltip from "../components/ActionTooltip";
 
 const CHECKLIST_ITEMS = [
   "Identity of project developer verified against registry records",
@@ -90,6 +95,9 @@ export default function VerifierDashboard() {
 
   // Green Success Popup Toast
   const [successToast, setSuccessToast] = useState(null);
+
+  // Hover state for queue row preview
+  const [hoveredQueueProjectId, setHoveredQueueProjectId] = useState(null);
 
   const loadData = () => {
     const projs = getProjects();
@@ -259,7 +267,15 @@ export default function VerifierDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="verifier"
+        eyebrow="ACVA AUDIT PORTAL"
+        title="Project Review Queue"
+        subtitle="Review evidence submissions, verify calculation methodologies, and authorize marketplace listings."
+        action={{ label: "Review History", to: "/verifier/history" }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Green Success Popup Toast (Spec §6.1 & §9) */}
       {successToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4 animate-fade-in">
@@ -283,92 +299,38 @@ export default function VerifierDashboard() {
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-forest font-medium">
-              Verification Authority Workspace
-            </span>
-          </div>
-          <h1 className="text-2xl font-semibold text-charcoal">Project Review Queue</h1>
-          <p className="text-sm text-charcoal-muted mt-1">
-            Review evidence submissions, verify calculation methodologies, and authorize marketplace listings.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/verifier/history"
-            className="btn-outline-sm flex items-center gap-1.5"
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Review History</span>
-          </Link>
-          <Link
-            to="/verifier/ledger"
-            className="btn-outline-sm flex items-center gap-1.5"
-          >
-            <Database className="w-3.5 h-3.5" />
-            <span>Ledger Blocks</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Top Stats Cards computed from ledger per spec §9 and §159 */}
+      {/* Top Stats Cards with 3px top borders */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="clean-card p-4">
-          <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-            Pending Project Reviews
-          </div>
-          <div className="text-2xl font-semibold text-amber-700 mt-1 font-mono">
-            {stats.pendingReviews}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1">
-            Awaiting technical attestation
-          </div>
-        </div>
-
-        <Link
-          to="/verifier/retirements"
-          className="clean-card p-4 hover:border-forest/40 transition-colors group"
-        >
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-              Pending Retirement Requests
-            </div>
-            <ArrowUpRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-forest" />
-          </div>
-          <div className="text-2xl font-semibold text-blue-700 mt-1 font-mono">
-            {stats.pendingRetirements}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1">
-            Buyer retirement authorizations
-          </div>
+        <StatCard
+          label="Pending Project Reviews"
+          value={stats.pendingReviews}
+          subtext="Awaiting technical attestation"
+          theme="pending"
+          icon={Clock}
+        />
+        <Link to="/verifier/retirements" className="block">
+          <StatCard
+            label="Pending Retirement Requests"
+            value={stats.pendingRetirements}
+            subtext="Buyer retirement authorizations"
+            theme="money"
+            icon={FileText}
+          />
         </Link>
-
-        <div className="clean-card p-4">
-          <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-            Approved Projects
-          </div>
-          <div className="text-2xl font-semibold text-emerald-700 mt-1 font-mono">
-            {stats.approvedCount}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1">
-            Listed on CarbonChain marketplace
-          </div>
-        </div>
-
-        <div className="clean-card p-4">
-          <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-            Credits Retired
-          </div>
-          <div className="text-2xl font-semibold text-charcoal mt-1 font-mono">
-            {stats.creditsRetired.toLocaleString("en-IN")}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1">
-            Permanently locked tCO2e
-          </div>
-        </div>
+        <StatCard
+          label="Approved Projects"
+          value={stats.approvedCount}
+          subtext="Listed on CarbonChain marketplace"
+          theme="credits"
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label="Credits Retired"
+          value={`${stats.creditsRetired.toLocaleString("en-IN")} tCO2e`}
+          subtext="Permanently locked tCO2e"
+          theme="blocks"
+          icon={ShieldCheck}
+        />
       </div>
 
       {/* Review Queue Filters & Search */}
@@ -425,7 +387,7 @@ export default function VerifierDashboard() {
         <div className="clean-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/80 border-b border-gray-100 text-charcoal-subtle font-medium uppercase tracking-wider text-[11px]">
+              <thead className="border-b border-gray-100 text-charcoal-subtle font-medium uppercase tracking-wider text-[11px]" style={{ backgroundColor: "#EEF3F0" }}>
                 <tr>
                   <th className="py-3 px-4">Project</th>
                   <th className="py-3 px-4">Type & Location</th>
@@ -445,20 +407,81 @@ export default function VerifierDashboard() {
                   const qty = project.quantityToList || project.estimatedCO2 || 0;
 
                   return (
-                    <tr key={project.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr
+                      key={project.id}
+                      className="hover-row transition-colors relative"
+                      onMouseEnter={() => setHoveredQueueProjectId(project.id)}
+                      onMouseLeave={() => setHoveredQueueProjectId(null)}
+                      onFocus={() => setHoveredQueueProjectId(project.id)}
+                      onBlur={() => setHoveredQueueProjectId(null)}
+                      tabIndex={0}
+                    >
                       {/* Project info */}
-                      <td className="py-3.5 px-4 max-w-xs">
+                      <td className="py-3.5 px-4 max-w-xs relative">
                         <div className="font-semibold text-charcoal line-clamp-1">{project.name}</div>
                         <div className="font-mono text-[11px] text-charcoal-subtle mt-0.5">
-                          {project.id || project.registryId}
+                          <CopyableText text={project.id || project.registryId} />
                         </div>
+
+                        {/* Hover Preview Card */}
+                        {hoveredQueueProjectId === project.id && (
+                          <div
+                            role="tooltip"
+                            className="absolute z-30 left-4 top-full mt-1 w-72 p-3 rounded-lg shadow-xl text-left pointer-events-none"
+                            style={{
+                              backgroundColor: "#14201A",
+                              border: "1px solid #2F7A57",
+                              color: "#FFFFFF",
+                            }}
+                          >
+                            <div className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-semibold mb-1">
+                              Queue Project Preview
+                            </div>
+                            <div className="font-bold text-white text-xs mb-1.5 truncate">
+                              {project.name}
+                            </div>
+                            <div className="space-y-1 text-[11px] text-stone-300">
+                              <div className="flex justify-between">
+                                <span>Requested Volume:</span>
+                                <span className="font-mono text-white">
+                                  {qty.toLocaleString("en-IN")} tCO₂e
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Asking Price:</span>
+                                <span className="font-mono text-white">
+                                  ₹{price.toLocaleString("en-IN")} / t
+                                </span>
+                              </div>
+                              <div className="flex justify-between pt-1 border-t border-white/20">
+                                <span>Benchmark Position:</span>
+                                <span
+                                  className={`font-semibold ${
+                                    isOutsideBand ? "text-amber-300" : "text-emerald-300"
+                                  }`}
+                                >
+                                  {isOutsideBand
+                                    ? price < band.min
+                                      ? "Below floor"
+                                      : "Above ceiling"
+                                    : "Within benchmark band"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </td>
 
                       {/* Type & Location */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-charcoal border border-gray-200 mb-1">
-                          {type}
-                        </span>
+                        <TermTooltip
+                          term="Sector"
+                          definition="Project type used to evaluate benchmark price and additionality."
+                        >
+                          <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-charcoal border border-gray-200 mb-1 cursor-help">
+                            {type}
+                          </span>
+                        </TermTooltip>
                         <div className="flex items-center gap-1 text-[11px] text-charcoal-muted">
                           <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
                           <span className="truncate max-w-[150px]">{project.location}</span>
@@ -471,20 +494,31 @@ export default function VerifierDashboard() {
                           {project.ownerOrganization || "Meridian Renewables Ltd"}
                         </div>
                         <div className="font-mono text-[11px] text-charcoal-subtle">
-                          {project.owner
-                            ? `${project.owner.slice(0, 6)}...${project.owner.slice(-4)}`
-                            : "0x7a89...338"}
+                          <CopyableText
+                            text={project.owner || "0x7a89338"}
+                            displayText={
+                              project.owner
+                                ? `${project.owner.slice(0, 6)}...${project.owner.slice(-4)}`
+                                : "0x7a89...338"
+                            }
+                          />
                         </div>
                       </td>
 
                       {/* Quantity */}
                       <td className="py-3.5 px-4 text-right whitespace-nowrap font-mono font-medium">
-                        {qty.toLocaleString("en-IN")} tCO2e
+                        {qty.toLocaleString("en-IN")}{" "}
+                        <TermTooltip
+                          term="tCO2e"
+                          definition="Tonnes of carbon dioxide equivalent under verification review."
+                        >
+                          <span>tCO₂e</span>
+                        </TermTooltip>
                       </td>
 
                       {/* Asking price */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap font-mono font-medium">
-                        ₹{price.toLocaleString("en-IN")}/tCO2e
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap font-mono font-medium" style={{ color: "#0F5C66" }}>
+                        ₹{price.toLocaleString("en-IN")}/tCO₂e
                       </td>
 
                       {/* Price Band */}
@@ -931,6 +965,7 @@ export default function VerifierDashboard() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

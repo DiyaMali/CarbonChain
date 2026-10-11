@@ -17,6 +17,9 @@ import { useAuth } from "../context/AuthContext";
 import { buyCredit, verifyChainIntegrity, tamperBlock, SDG_NAMES, computeImpactFactor } from "../services/ledgerService";
 import ProjectTypeIcon from "../components/ProjectTypeIcon";
 import PaymentSheet from "../components/PaymentSheet";
+import PageHeader from "../components/PageHeader";
+import StatusBadge from "../components/StatusBadge";
+import { THEME, STATUS_COLORS } from "../styles/tokens";
 
 const ACTION_LABELS = {
   CREDIT_MINTED: "MCU Minted",
@@ -106,21 +109,18 @@ export default function CreditDetail() {
   const sdgBreakdown = proj?.sdgScores ? Object.entries(proj.sdgScores) : [];
 
   return (
-    <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-8">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-forest block mb-1">MCU Detail</span>
-          <h1 className="text-2xl font-semibold text-charcoal">{credit.id}</h1>
-          <p className="text-sm text-charcoal-muted mt-0.5">{proj?.name}</p>
-        </div>
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        eyebrow="ASSET RECORD"
+        title={`Token ${credit.id}`}
+        subtitle={proj?.name || "Verified carbon credit token record on simulated ledger."}
+        action={{ label: "Back to Marketplace", to: "/marketplace" }}
+      >
         <div className="flex items-center gap-2">
-          {credit.retired && <span className="badge-retired">Retired</span>}
-          {credit.listed && !credit.retired && <span className="badge-listed">Listed</span>}
-          {!credit.listed && !credit.retired && <span className="badge-approved">Unlisted</span>}
+          <StatusBadge status={credit.retired ? "Retired" : credit.listed ? "Listed" : "Unlisted"} />
         </div>
-      </div>
-
+      </PageHeader>
+      <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
       {buySuccess && (
         <div className="mb-6 p-4 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
@@ -279,7 +279,7 @@ export default function CreditDetail() {
           {/* Buy */}
           {credit.listed && !credit.retired && (
             <div className="clean-card p-5">
-              <div className="text-2xl font-semibold text-charcoal mb-1">{formatINR(credit.price)}</div>
+              <div className="text-2xl font-bold font-mono mb-1" style={{ color: "#0F5C66" }}>{formatINR(credit.price)}</div>
               <div className="text-xs text-charcoal-muted mb-4">Rs {credit.pricePerTonne.toLocaleString("en-IN")}/tCO2e</div>
               {isOwner ? (
                 <div className="text-xs text-charcoal-muted border border-gray-200 rounded p-3 text-center">Your listing</div>
@@ -357,6 +357,7 @@ export default function CreditDetail() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }

@@ -12,6 +12,8 @@ import {
   resolveProjectImage
 } from "../services/ledgerService";
 
+import PageHeader from "../components/PageHeader";
+
 export default function PublicVerify() {
   const { tokenId } = useParams();
   const id = tokenId;
@@ -44,13 +46,22 @@ export default function PublicVerify() {
 
   if (!retReq && !credit && !project) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center clean-card p-8">
-        <Shield className="w-10 h-10 text-charcoal-subtle mx-auto mb-3" />
-        <h1 className="text-xl font-semibold text-charcoal mb-2">Record Not Found</h1>
-        <p className="text-xs text-charcoal-muted mb-4">
-          Record <span className="font-mono font-bold">{id}</span> could not be verified on the CarbonChain Ledger.
-        </p>
-        <Link to="/marketplace" className="btn-outline-sm">Browse Marketplace</Link>
+      <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+        <PageHeader
+          role="verifier"
+          eyebrow="PUBLIC REGISTRY"
+          title="Record Not Found"
+          subtitle="Verification record could not be found."
+          action={{ label: "Browse Marketplace", to: "/marketplace" }}
+        />
+        <div className="max-w-xl mx-auto px-4 py-16 text-center clean-card p-8 mt-6">
+          <Shield className="w-10 h-10 text-charcoal-subtle mx-auto mb-3" />
+          <h1 className="text-xl font-semibold text-charcoal mb-2">Record Not Found</h1>
+          <p className="text-xs text-charcoal-muted mb-4">
+            Record <span className="font-mono font-bold">{id}</span> could not be verified on the CarbonChain Ledger.
+          </p>
+          <Link to="/marketplace" className="btn-outline-sm">Browse Marketplace</Link>
+        </div>
       </div>
     );
   }
@@ -60,20 +71,15 @@ export default function PublicVerify() {
   const entityName = retReq?.retireeName || credit?.retireeName || "Ironbridge Steel and Cement Ltd";
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-      {/* Header */}
-      <div className="flex items-start gap-3 mb-6">
-        <div className="w-10 h-10 rounded border border-emerald-200 bg-emerald-50 flex items-center justify-center flex-shrink-0">
-          <Shield className="w-5 h-5 text-emerald-600" />
-        </div>
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-forest block mb-0.5 font-medium">
-            Public Registry Verification Record
-          </span>
-          <h1 className="text-xl font-semibold text-charcoal font-mono">{id}</h1>
-          <p className="text-xs text-charcoal-muted">{project?.name || "Verified Carbon Asset"}</p>
-        </div>
-      </div>
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="verifier"
+        eyebrow="PUBLIC REGISTRY VERIFICATION"
+        title={`Verification: ${id}`}
+        subtitle="Tamper-evident record validation and cryptographic ledger proof."
+        action={{ label: "Browse Marketplace", to: "/marketplace" }}
+      />
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
       {/* Project photo */}
       {project && (
@@ -170,6 +176,7 @@ export default function PublicVerify() {
 
       <div className="mt-8 text-[11px] text-charcoal-subtle text-center">
         CarbonChain Ledger: SHA-256 hash-chained, tamper-evident records
+      </div>
       </div>
     </div>
   );

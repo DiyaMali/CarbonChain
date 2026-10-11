@@ -153,7 +153,6 @@ export function getNavItems(user) {
     items.push(
       { to: "/submit",                 label: "Submit Project" },
       { to: "/my-projects",            label: "My Projects" },
-      { to: "/transactions?tab=sales", label: "Sales" },
     );
   }
 

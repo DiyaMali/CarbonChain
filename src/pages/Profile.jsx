@@ -17,6 +17,8 @@ import { useAuth } from "../context/AuthContext";
 import { useWallet } from "../context/WalletContext";
 import { canSell, canBuy, isVerifierUser } from "../services/roleService";
 import { shortenAddress } from "../utils/walletUtils";
+import PageHeader from "../components/PageHeader";
+import { THEME } from "../styles/tokens";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -51,18 +53,14 @@ export default function Profile() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
-      {/* Header */}
-      <div>
-        <span className="text-xs font-mono uppercase tracking-wider text-[#14532D] block mb-1">
-          Account Administration
-        </span>
-        <h1 className="text-2xl font-semibold text-stone-900">Organisation Profile</h1>
-        <p className="text-sm text-stone-500 mt-0.5">
-          Review your registered identity, deterministic wallet address, and assigned ledger capabilities.
-        </p>
-      </div>
-
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        eyebrow="ACCOUNT ADMINISTRATION"
+        title="Organisation Profile"
+        subtitle="Review your registered identity, deterministic wallet address, and assigned ledger capabilities."
+        action={{ label: "Back to Dashboard", to: "/dashboard" }}
+      />
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
       {/* Main Profile Card */}
       <div className="clean-card p-6 bg-white border border-stone-200 rounded-lg space-y-6 shadow-xs">
         {/* Identity Section */}
@@ -79,7 +77,7 @@ export default function Profile() {
                 <span className="text-xs text-stone-500">{user.email}</span>
                 <span className="text-stone-300">&bull;</span>
                 <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200">
-                  {user.role}
+                  {isVerifier ? "Verifier (simulated ACVA role)" : user.role}
                 </span>
               </div>
             </div>
@@ -87,7 +85,7 @@ export default function Profile() {
           {isVerifier && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#005337] text-[#39ce94] text-xs font-mono font-bold tracking-wider uppercase border border-[#39ce94]/30 w-fit">
               <ShieldCheck className="w-4 h-4" />
-              <span>Verification Authority</span>
+              <span>Verifier (simulated ACVA role)</span>
             </div>
           )}
         </div>
@@ -235,6 +233,7 @@ export default function Profile() {
             Back to Dashboard
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );

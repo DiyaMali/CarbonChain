@@ -95,6 +95,7 @@ export default function Navbar() {
           { to: "/verifier/queue", label: "Review Queue" },
           { to: "/verifier/retirements", label: "Retirement Requests" },
           { to: "/verifier/ledger", label: "Ledger" },
+          { to: "/about", label: "About" },
           { to: "/notifications", label: "Notifications" },
         ]
       : [
@@ -102,11 +103,13 @@ export default function Navbar() {
           ...(isSeller ? [{ to: "/my-projects", label: "My Projects" }] : []),
           ...(isBuyer ? [{ to: "/marketplace", label: "Marketplace" }] : []),
           { to: "/transactions", label: "Transactions" },
+          { to: "/about", label: "About" },
           { to: "/notifications", label: "Notifications" },
         ]
     : [
         { to: "/", label: "Home" },
         { to: "/marketplace", label: "Marketplace" },
+        { to: "/about", label: "About" },
       ];
 
   return (
@@ -119,12 +122,17 @@ export default function Navbar() {
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-[#1F5C3F]/25 flex items-center justify-center bg-white shadow-sm group-hover:scale-105 group-hover:border-[#1F5C3F] transition-all duration-150">
                 <img src="/logo.png" alt="CarbonChain" className="w-full h-full object-cover scale-110" />
               </div>
-              <span
-                className="text-2xl sm:text-3xl tracking-tight text-[#0F2A1D]"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                CarbonChain
-              </span>
+              <div className="flex flex-col">
+                <span
+                  className="text-2xl sm:text-3xl tracking-tight text-[#0F2A1D]"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  CarbonChain
+                </span>
+                <span className="text-[10px] font-mono tracking-wider text-forest font-medium -mt-1">
+                  Carbon Registry
+                </span>
+              </div>
             </Link>
           </div>
 
@@ -220,7 +228,9 @@ export default function Navbar() {
                     <div className="text-sm font-semibold text-charcoal leading-tight truncate max-w-[120px]">
                       {user.name.split(" ")[0]}
                     </div>
-                    <div className="text-xs text-forest font-medium">{user.role}</div>
+                    <div className="text-xs text-forest font-medium truncate max-w-[140px]">
+                      {isVerifier ? "Verifier (simulated ACVA role)" : user.role}
+                    </div>
                   </div>
                   <ChevronDown className="w-4 h-4 text-charcoal-muted" />
                 </button>
@@ -239,7 +249,7 @@ export default function Navbar() {
                         <div className="text-charcoal-muted truncate mt-0.5">{user.email}</div>
                         <div className="mt-2 flex items-center gap-1.5">
                           <span className="inline-block px-2 py-0.5 rounded-full bg-forest-light text-forest font-medium text-[11px] border border-forest/20">
-                            {isVerifier ? "Verification Authority" : user.role}
+                            {isVerifier ? "Verifier (simulated ACVA role)" : user.role}
                           </span>
                         </div>
                         {account && (
@@ -280,7 +290,7 @@ export default function Navbar() {
                       </div>
 
                       <div className="border-t border-gray-100 py-1">
-                        {USE_DEMO_LEDGER && (
+                        {(user?.role === "admin" || user?.isAdmin) && (
                           <button
                             onClick={handleResetWorkspace}
                             disabled={resettingWorkspace}
@@ -348,7 +358,7 @@ export default function Navbar() {
                 <div className="font-semibold text-charcoal">{user.name}</div>
                 <div className="text-charcoal-muted text-[11px] truncate">{user.email}</div>
                 <div className="text-forest font-medium mt-1">
-                  {isVerifier ? "Verification Authority" : user.role}
+                  {isVerifier ? "Verifier (simulated ACVA role)" : user.role}
                 </div>
               </div>
             )}
@@ -387,7 +397,7 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="pt-2 border-t border-gray-100 flex flex-col gap-1">
-                {USE_DEMO_LEDGER && (
+                {(user?.role === "admin" || user?.isAdmin) && (
                   <button
                     onClick={handleResetWorkspace}
                     disabled={resettingWorkspace}

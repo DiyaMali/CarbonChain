@@ -24,6 +24,10 @@ import {
   resolveProjectImage,
   DEMO_WALLETS
 } from "../services/ledgerService";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
+import StatusBadge from "../components/StatusBadge";
+import { THEME, STATUS_COLORS } from "../styles/tokens";
 
 function formatINR(n) {
   if (n === null || n === undefined) return "₹0";
@@ -108,7 +112,15 @@ export default function MyCredits() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="buyer"
+        eyebrow="BUYER PORTFOLIO"
+        title="My Carbon Credits"
+        subtitle="Manage purchased holdings, track verifier retirement authorizations, and access official certificates."
+        action={{ label: "Browse Marketplace", to: "/marketplace" }}
+      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       {/* Cancellation Notice */}
       {cancelNotice && (
         <div className="mb-6 p-4 rounded border border-emerald-300 bg-emerald-50 text-emerald-950 text-xs flex items-center justify-between">
@@ -125,79 +137,40 @@ export default function MyCredits() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-forest font-medium">
-              Carbon Portfolio &bull; Ironbridge Steel and Cement Ltd
-            </span>
-          </div>
-          <h1 className="text-2xl font-semibold text-charcoal">My Carbon Credits</h1>
-          <p className="text-sm text-charcoal-muted mt-1">
-            Manage purchased holdings, track verifier retirement authorizations, and access official certificates.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/marketplace"
-            className="btn-outline-sm flex items-center gap-1.5"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Browse Marketplace</span>
-          </Link>
-        </div>
-      </div>
-
       {/* Top Metric Cards (§10 & §65) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="clean-card p-4">
-          <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-            Total Purchased
-          </div>
-          <div className="text-2xl font-semibold text-charcoal mt-1 font-mono">
-            {totals.purchased.toLocaleString("en-IN")}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1 font-mono">
-            tCO2e acquired
-          </div>
-        </div>
-
-        <div className="clean-card p-4">
-          <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-            Available to Retire
-          </div>
-          <div className="text-2xl font-semibold text-emerald-700 mt-1 font-mono">
-            {totals.available.toLocaleString("en-IN")}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1 font-mono">
-            Ready for submission
-          </div>
-        </div>
-
-        <div className="clean-card p-4">
-          <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-            Pending Retirement
-          </div>
-          <div className="text-2xl font-semibold text-amber-700 mt-1 font-mono">
-            {totals.pending.toLocaleString("en-IN")}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1 font-mono">
-            Locked in verifier review
-          </div>
-        </div>
-
-        <div className="clean-card p-4">
-          <div className="text-xs font-medium text-charcoal-subtle uppercase tracking-wider">
-            Permanently Retired
-          </div>
-          <div className="text-2xl font-semibold text-blue-700 mt-1 font-mono">
-            {totals.retired.toLocaleString("en-IN")}
-          </div>
-          <div className="text-[11px] text-charcoal-muted mt-1 font-mono">
-            Certified carbon offsets
-          </div>
-        </div>
+        <StatCard
+          type="credits"
+          title="Total Purchased"
+          value={totals.purchased.toLocaleString("en-IN")}
+          unit="tCO2e"
+          subtext="Total acquired volume"
+          icon={<Layers className="w-4 h-4" />}
+        />
+        <StatCard
+          type="money"
+          title="Available to Retire"
+          value={totals.available.toLocaleString("en-IN")}
+          unit="tCO2e"
+          subtext="Ready for submission"
+          icon={<Leaf className="w-4 h-4" />}
+        />
+        <StatCard
+          type="pending"
+          title="Pending Retirement"
+          value={totals.pending.toLocaleString("en-IN")}
+          unit="tCO2e"
+          subtext="Locked in verifier review"
+          icon={<Clock className="w-4 h-4" />}
+        />
+        <StatCard
+          type="blocks"
+          title="Permanently Retired"
+          value={totals.retired.toLocaleString("en-IN")}
+          unit="tCO2e"
+          subtext="Certified carbon offsets"
+          icon={<Award className="w-4 h-4" />}
+        />
       </div>
 
       {/* Tabs per spec §10: Holdings, Retirement requests, Retired */}
@@ -253,7 +226,15 @@ export default function MyCredits() {
               {holdings.map((h) => {
                 const canRetire = (h.availableQty || 0) > 0;
                 return (
-                  <div key={h.id} className="clean-card p-5">
+                  <div
+                    key={h.id}
+                    className="p-5 rounded-[8px] shadow-xs"
+                    style={{
+                      backgroundColor: "#FFFFFF",
+                      border: "1px solid #E3E8E5",
+                      borderLeft: canRetire ? "4px solid #14452F" : "4px solid #4A5550",
+                    }}
+                  >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -327,8 +308,8 @@ export default function MyCredits() {
                       </div>
                     </div>
 
-                    <div className="pt-3 flex items-center justify-between text-[11px] text-charcoal-muted">
-                      <span>Total Invested: <strong className="text-charcoal">{formatINR(h.totalPaid)}</strong></span>
+                    <div className="pt-3 flex items-center justify-between text-[11px] text-stone-500">
+                      <span>Total Invested: <strong className="font-mono font-bold" style={{ color: "#0F5C66" }}>{formatINR(h.totalPaid)}</strong></span>
                       <span>Acquired on: {h.purchasedAt ? new Date(h.purchasedAt).toLocaleDateString("en-IN") : "Jan 2026"}</span>
                     </div>
                   </div>
@@ -354,8 +335,8 @@ export default function MyCredits() {
             <div className="clean-card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50/80 border-b border-gray-100 text-charcoal-subtle font-medium uppercase tracking-wider text-[11px]">
-                    <tr>
+                  <thead style={{ backgroundColor: "#EEF3F0" }}>
+                    <tr className="border-b border-[#E3E8E5] text-stone-600 font-semibold uppercase tracking-wider text-[11px]">
                       <th className="py-3 px-4">Project</th>
                       <th className="py-3 px-4 text-right">Quantity</th>
                       <th className="py-3 px-4">Beneficiary</th>
@@ -371,7 +352,7 @@ export default function MyCredits() {
                       const isRejected = req.status === "Rejected";
 
                       return (
-                        <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
+                        <tr key={req.id} className="hover:bg-[#F7FAF8] transition-colors">
                           {/* Project info */}
                           <td className="py-3.5 px-4 max-w-xs">
                             <div className="font-semibold text-charcoal line-clamp-1">
@@ -523,6 +504,7 @@ export default function MyCredits() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -28,7 +28,7 @@ export const SEEDED_ACCOUNTS = [
     organisation: "Meridian Renewables Ltd",
     // Sell only per spec §3.1
     capabilities: ["sell"],
-    role: "Project Owner",
+    role: "Seller",
     walletAddress: ACCOUNT_WALLETS.seller,
     isVerifier: false,
     createdAt: "2025-01-10T08:00:00Z",

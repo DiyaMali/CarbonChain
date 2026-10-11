@@ -27,6 +27,8 @@ import {
   getPurchasesHistory,
   DEMO_WALLETS
 } from "../services/ledgerService";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
 
 export default function VerifierRetirements() {
   const { account } = useWallet();
@@ -187,7 +189,15 @@ export default function VerifierRetirements() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="verifier"
+        eyebrow="VERIFIER AUDIT"
+        title="Retirement Requests"
+        subtitle="Validate buyer credit acquisition provenance, cross-check serial integrity, and issue permanent retirement certificates."
+        action={{ label: "Review Queue", to: "/verifier/queue" }}
+      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       {/* Green Success Toast */}
       {successToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4 animate-fade-in">
@@ -219,27 +229,29 @@ export default function VerifierRetirements() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-forest font-medium">
-              Verification Authority Review
-            </span>
-          </div>
-          <h1 className="text-2xl font-semibold text-charcoal">Retirement Review Queue</h1>
-          <p className="text-sm text-charcoal-muted mt-1">
-            Validate buyer credit acquisition provenance, cross-check serial integrity, and issue permanent retirement certificates.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/verifier/queue" className="btn-outline-sm">
-            Project Queue
-          </Link>
-          <Link to="/verifier/history" className="btn-outline-sm">
-            Review History
-          </Link>
-        </div>
+      {/* Summary StatCards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <StatCard
+          label="Pending Requests"
+          value={pendingRequests.length}
+          subtext="Awaiting verification"
+          theme="pending"
+          icon={Clock}
+        />
+        <StatCard
+          label="Approved Retirements"
+          value={requestsList.filter((r) => r.status === "Approved").length}
+          subtext="Certificates issued"
+          theme="credits"
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label="Total Volume Retired"
+          value={`${requestsList.filter((r) => r.status === "Approved").reduce((a, b) => a + (b.quantity || 0), 0).toLocaleString("en-IN")} tCO2e`}
+          subtext="Permanently retired"
+          theme="blocks"
+          icon={ShieldCheck}
+        />
       </div>
 
       {/* Queue Table */}
@@ -255,7 +267,7 @@ export default function VerifierRetirements() {
         <div className="clean-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/80 border-b border-gray-100 text-charcoal-subtle font-medium uppercase tracking-wider text-[11px]">
+              <thead className="border-b border-gray-100 text-charcoal-subtle font-medium uppercase tracking-wider text-[11px]" style={{ backgroundColor: "#EEF3F0" }}>
                 <tr>
                   <th className="py-3 px-4">Request ID</th>
                   <th className="py-3 px-4">Buyer & Beneficiary</th>
@@ -267,7 +279,7 @@ export default function VerifierRetirements() {
               </thead>
               <tbody className="divide-y divide-gray-100 text-charcoal">
                 {pendingRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={req.id} className="hover:bg-[#F7FAF8] transition-colors">
                     {/* Request ID */}
                     <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px] text-forest font-semibold">
                       {req.id}
@@ -607,6 +619,7 @@ export default function VerifierRetirements() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

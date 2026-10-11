@@ -66,11 +66,10 @@ export async function runContractWrite(contractCallFn, walletContext, callbacks 
     // 6. Execute contract write
     const tx = await contractCallFn(signer);
 
-    // 7. Confirming on blockchain
+    // 7. Recorded on simulated hash-chained ledger
     updateStatus("CONFIRMING", {
-      message: "Confirming on blockchain...",
+      message: "Recorded on simulated hash-chained ledger",
       txHash: tx.hash,
-      explorerUrl: `${EXPLORER}/tx/${tx.hash}`,
     });
 
     // 8. Wait for 1 confirmation
@@ -80,7 +79,6 @@ export async function runContractWrite(contractCallFn, walletContext, callbacks 
     const successData = {
       message: "Transaction confirmed successfully!",
       txHash: tx.hash,
-      explorerUrl: `${EXPLORER}/tx/${tx.hash}`,
       receipt,
     };
     updateStatus("SUCCESS", successData);

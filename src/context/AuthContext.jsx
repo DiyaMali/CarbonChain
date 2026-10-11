@@ -143,7 +143,7 @@ export function AuthProvider({ children }) {
 
     const hasCreate = capabilities.includes("sell") || capabilities.includes("create_sell");
     const hasBuy = capabilities.includes("buy") || capabilities.includes("buy_retire");
-    const role = hasCreate && hasBuy ? "Project Owner & Buyer" : hasCreate ? "Project Owner" : "Buyer";
+    const role = hasCreate && hasBuy ? "Seller & Buyer" : hasCreate ? "Seller" : "Buyer";
 
     // Deterministic wallet from email (simple hex hash for display)
     const walletHex = Array.from(cleanEmail)

@@ -38,6 +38,10 @@ import { useWallet } from "../context/WalletContext";
 import { useAuth } from "../context/AuthContext";
 import { canBuy, canSell, isVerifierUser } from "../services/roleService";
 import PaymentSheet from "../components/PaymentSheet";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
+import ProjectThumbnail from "../components/ProjectThumbnail";
+import { THEME, STATUS_COLORS } from "../styles/tokens";
 
 function formatNumber(num) {
   if (num === null || num === undefined) return "Not available";
@@ -379,39 +383,26 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-gray-200 gap-4">
-        <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-forest block mb-1">
-            Carbon Registry India &bull; Official Snapshot
-          </span>
-          <h1 className="text-2xl font-semibold text-charcoal">
-            CRI Project Marketplace
-          </h1>
-          <p className="text-xs text-charcoal-muted mt-0.5">
-            Real projects from Carbon Registry India (registry.nccf.in). Trading in Marketable Carbon Units (MCUs).
-          </p>
-        </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <a
-            href={CRI_REGISTRY_HOME}
-            target="_blank"
-            rel="noreferrer"
-            className="btn-neutral-outline text-xs inline-flex items-center gap-1.5"
-          >
-            Open CRI Registry
-            <ExternalLink className="w-3 h-3 text-charcoal-subtle" />
-          </a>
-          <button
-            onClick={refreshData}
-            className="btn-neutral-outline text-xs flex items-center gap-1.5"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
-          </button>
-        </div>
-      </div>
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        eyebrow="VOLUNTARY MARKETPLACE"
+        title="Marketplace"
+        subtitle="Real projects from Carbon Registry India (registry.nccf.in). Trading in Marketable Carbon Units (MCUs)."
+        action={{ label: "Refresh Listings", onClick: refreshData }}
+      >
+        <a
+          href={CRI_REGISTRY_HOME}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/40 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
+          style={{ backgroundColor: "transparent" }}
+        >
+          <span>Open CRI Registry</span>
+          <ExternalLink className="w-3 h-3 text-white/80" />
+        </a>
+      </PageHeader>
+
+      <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
 
       {/* Verifier Inspection Mode Banner */}
       {isVerifierRole && (
@@ -487,27 +478,37 @@ export default function Marketplace() {
         </div>
       )}
 
-      {/* CRI-style summary count row */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded bg-cream/60 border border-gray-200 mb-6 text-xs text-charcoal">
-        <div className="flex items-center gap-4">
-          <span className="font-semibold text-charcoal">
-            Total: {summary.total}
-          </span>
-          <span className="text-charcoal-muted">
-            Planned: <span className="text-amber-700 font-medium">{summary.planned}</span>
-          </span>
-          <span className="text-charcoal-muted">
-            Listed: <span className="text-blue-700 font-medium">{summary.listed}</span>
-          </span>
-          {filteredProjects.length !== summary.total && (
-            <span className="text-charcoal-subtle">
-              &bull; Showing {filteredProjects.length} filtered
-            </span>
-          )}
-        </div>
-        <div className="text-[11px] text-charcoal-muted">
-          Indicative market prices per tCO2e (CarbonChain Network)
-        </div>
+      {/* ── Stat Cards ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          type="credits"
+          title="Total Projects"
+          value={summary.total}
+          subtext="Registry projects"
+          icon={<ShoppingBag className="w-4 h-4" />}
+        />
+        <StatCard
+          type="money"
+          title="Active Listed"
+          value={summary.listed}
+          subtext="Available for purchase"
+          icon={<CheckCircle2 className="w-4 h-4" />}
+        />
+        <StatCard
+          type="pending"
+          title="Planned / Pipeline"
+          value={summary.planned}
+          subtext="Upcoming issuances"
+          icon={<Clock className="w-4 h-4" />}
+        />
+        <StatCard
+          type="blocks"
+          title="Indicative Price"
+          value="₹450"
+          unit="/ tCO2e"
+          subtext="Base benchmark"
+          icon={<Shield className="w-4 h-4" />}
+        />
       </div>
 
       {/* Filters matching CRI site */}
@@ -775,6 +776,7 @@ export default function Marketplace() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }
@@ -802,9 +804,22 @@ function CriProjectCard({
     <div
       data-project-key={projectKey}
       onClick={() => navigate(`/projects/${project.slug}`)}
-      className={`clean-card flex flex-col cursor-pointer hover:border-forest/40 transition-all duration-200 group overflow-hidden relative ${
+      className={`flex flex-col cursor-pointer transition-all duration-200 group overflow-hidden relative rounded-[8px] shadow-xs hover-card hover-card-clickable ${
         isHighlighted ? "ring-2 ring-emerald-500 shadow-xl border-emerald-400 bg-emerald-50/20" : ""
       }`}
+      style={{
+        backgroundColor: "#FFFFFF",
+        border: "1px solid #E3E8E5",
+        borderLeft: `4px solid ${
+          project.status === "Listed" || token
+            ? "#14452F"
+            : project.status === "Pending"
+            ? "#8A5A00"
+            : project.status === "Rejected"
+            ? "#A12A2A"
+            : "#14452F"
+        }`,
+      }}
     >
       {/* Newly Verified badge if highlighted */}
       {isHighlighted && (
@@ -816,24 +831,12 @@ function CriProjectCard({
       )}
 
       {/* Photo with status badge */}
-      <div className="h-44 relative bg-cream-light overflow-hidden border-b border-gray-100 flex items-center justify-center">
-        <img
-          src={project.image || resolveProjectImage(project)}
-          alt={project.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            const fallback = resolveProjectImage(project);
-            if (e.currentTarget.src !== fallback) {
-              e.currentTarget.src = fallback;
-            } else {
-              e.currentTarget.src = "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=1200&q=80";
-            }
-          }}
+      <div className="h-44 relative bg-cream-light overflow-hidden border-b border-[#E3E8E5] flex items-center justify-center">
+        <ProjectThumbnail
+          project={project}
+          variant="card"
+          className="h-44 w-full border-none rounded-none"
         />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#0f3d24] to-[#1e583d] flex flex-col items-center justify-center p-4 text-center text-white">
-          <span className="material-symbols-outlined text-3xl text-emerald-400 mb-1">eco</span>
-          <span className="text-xs font-semibold">{project.name}</span>
-        </div>
 
         {/* Status Badge */}
         <div className="absolute top-2.5 left-2.5 z-10">
@@ -955,7 +958,7 @@ function CriProjectCard({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <div className="text-sm font-semibold text-charcoal">
+                  <div className="text-sm font-bold font-mono" style={{ color: "#0F5C66" }}>
                     {formatINR(token.price)}
                   </div>
                   <div className="text-[10px] text-charcoal-subtle font-mono">

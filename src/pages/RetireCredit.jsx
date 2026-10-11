@@ -20,6 +20,8 @@ import {
   requestRetirement,
   DEMO_WALLETS
 } from "../services/ledgerService";
+import PageHeader from "../components/PageHeader";
+import { THEME } from "../styles/tokens";
 
 function isValidAddress(addr) {
   if (!addr) return true;
@@ -146,7 +148,11 @@ export default function RetireCredit() {
         qty: Number(quantity),
         projectName: holding.projectName,
       });
-      toast.success(`Retirement requested for ${Number(quantity).toLocaleString("en-IN")} tCO2e. Awaiting verifier approval.`);
+      try {
+        toast?.success?.(`Retirement requested for ${Number(quantity).toLocaleString("en-IN")} tCO2e. Awaiting verifier approval.`);
+      } catch (toastErr) {
+        console.warn("Toast notification warning:", toastErr);
+      }
     } catch (err) {
       alert("Error submitting retirement request: " + err.message);
     } finally {
@@ -179,7 +185,15 @@ export default function RetireCredit() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="buyer"
+        eyebrow="PORTFOLIO RETIREMENT"
+        title="Request Credit Retirement"
+        subtitle="Submit carbon credits for permanent retirement and official certificate issuance."
+        action={{ label: "Back to My Credits", to: "/my-credits" }}
+      />
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       {/* Green Success Popup Modal per spec §11 */}
       {successNotice && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -205,19 +219,6 @@ export default function RetireCredit() {
           </div>
         </div>
       )}
-
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Link to="/my-credits" className="text-xs text-charcoal-subtle hover:text-forest">
-            &larr; Back to My Credits
-          </Link>
-        </div>
-        <h1 className="text-2xl font-semibold text-charcoal">Request Credit Retirement</h1>
-        <p className="text-sm text-charcoal-muted mt-1">
-          Submit carbon credits for permanent retirement and official certificate issuance.
-        </p>
-      </div>
 
       {/* Holding Summary Card per spec §11 */}
       <div className="clean-card p-4 mb-6">
@@ -396,6 +397,7 @@ export default function RetireCredit() {
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

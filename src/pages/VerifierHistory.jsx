@@ -14,6 +14,8 @@ import {
   Database
 } from "lucide-react";
 import { getVerifierHistory } from "../services/ledgerService";
+import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
 
 export default function VerifierHistory() {
   const [historyItems, setHistoryItems] = useState([]);
@@ -68,20 +70,45 @@ export default function VerifierHistory() {
   }, [historyItems, activeFilter, searchQuery]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-forest font-medium">
-              Audit & Verification Records
-            </span>
-          </div>
-          <h1 className="text-2xl font-semibold text-charcoal">Review History</h1>
-          <p className="text-sm text-charcoal-muted mt-1">
-            Permanent log of project attestation decisions and retirement authorizations.
-          </p>
-        </div>
+    <div className="w-full min-h-screen" style={{ backgroundColor: "#F4F7F5" }}>
+      <PageHeader
+        role="verifier"
+        eyebrow="AUDIT TRAIL"
+        title="Review History"
+        subtitle="Permanent log of project attestation decisions and retirement authorizations."
+        action={{ label: "Review Queue", to: "/verifier/queue" }}
+      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          label="Total Decisions"
+          value={counts.all}
+          subtext="Logged on ledger"
+          theme="blocks"
+          icon={Database}
+        />
+        <StatCard
+          label="Projects Approved"
+          value={counts.approved}
+          subtext="Marketplace ready"
+          theme="credits"
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label="Projects Rejected"
+          value={counts.rejected}
+          subtext="Returned with notes"
+          theme="rejected"
+          icon={XCircle}
+        />
+        <StatCard
+          label="Retirements"
+          value={counts.retirements}
+          subtext="Permanent burns"
+          theme="money"
+          icon={ShieldCheck}
+        />
       </div>
 
       {/* Filter Tabs & Search Bar */}
@@ -156,7 +183,7 @@ export default function VerifierHistory() {
         <div className="clean-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/80 border-b border-gray-100 text-charcoal-subtle font-medium uppercase tracking-wider text-[11px]">
+              <thead className="border-b border-gray-100 text-charcoal-subtle font-medium uppercase tracking-wider text-[11px]" style={{ backgroundColor: "#EEF3F0" }}>
                 <tr>
                   <th className="py-3 px-4">Date & Time</th>
                   <th className="py-3 px-4">Decision</th>
@@ -177,7 +204,7 @@ export default function VerifierHistory() {
                     item.verifiedQuantity || item.quantity || item.volume || 0;
 
                   return (
-                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={item.id} className="hover:bg-[#F7FAF8] transition-colors">
                       {/* Timestamp */}
                       <td className="py-3.5 px-4 whitespace-nowrap text-charcoal-muted font-mono text-[11px]">
                         {item.timestamp
@@ -266,6 +293,7 @@ export default function VerifierHistory() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
